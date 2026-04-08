@@ -1,0 +1,949 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — Eco Points</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0a1f14;
+      --bg-card:      #0f2a1a;
+      --bg-raised:    #152f1e;
+      --border:       #1f4a2e;
+      --border-lit:   #2d7a4f;
+      --green:        #2d7a4f;
+      --green-mid:    #3a9460;
+      --green-light:  #4caf7d;
+      --green-pale:   #c8ead8;
+      --text:         #e8f0eb;
+      --text-muted:   #7a9e87;
+      --gold:         #c9952a;
+      --gold-light:   #e8b84b;
+      --silver:       #8a9ba8;
+      --bronze:       #a0673a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -45deg, transparent, transparent 40px,
+        rgba(45,122,79,0.018) 40px, rgba(45,122,79,0.018) 41px
+      );
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════
+       NAVBAR
+    ════════════════════════════ */
+    .topbar {
+      position: static;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem; color: var(--text);
+      text-decoration: none; letter-spacing: 0.01em;
+    }
+    .nav-right {
+      display: flex; align-items: center; gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+    .nav-points {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.78rem; color: var(--green-light);
+      font-weight: 600; letter-spacing: 0.03em;
+    }
+    .nav-btn {
+      padding: 0.38rem 1rem;
+      border: 1px solid var(--border-lit);
+      border-radius: 999px;
+      color: var(--text); font-size: 0.82rem; font-weight: 500;
+      text-decoration: none; background: transparent;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover { background: var(--green); border-color: var(--green); color: #fff; }
+    .nav-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+    /* ════════════════════════════
+       PAGE WRAP
+    ════════════════════════════ */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    .rule {
+      width: 48px; height: 3px;
+      background: var(--green-light);
+      border-radius: 2px; margin-bottom: 1rem;
+    }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 5vw, 2.6rem);
+      font-weight: 900; line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+    .page-header p {
+      font-size: 0.92rem; color: var(--text-muted);
+      max-width: 480px; line-height: 1.6;
+    }
+
+    /* section label */
+    .sec-label {
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 1rem;
+    }
+
+    /* ════════════════════════════
+       HERO STATS ROW
+    ════════════════════════════ */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem 1.5rem;
+      position: relative; overflow: hidden;
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--green-light);
+      border-radius: 0 0 16px 16px;
+      opacity: 0.4;
+    }
+    .stat-card.primary::after { opacity: 1; }
+
+    .stat-label {
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 0.6rem;
+    }
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem; font-weight: 900;
+      color: var(--green-light); line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .stat-card.primary .stat-value { font-size: 3rem; }
+    .stat-sub {
+      font-size: 0.76rem; color: var(--text-muted);
+    }
+
+    /* level badge inside primary card */
+    .level-badge {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      background: var(--green);
+      border-radius: 8px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.72rem; font-weight: 700;
+      color: #fff; letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Level progress bar ── */
+    .level-progress {
+      margin-top: 1rem;
+    }
+    .level-progress-header {
+      display: flex; justify-content: space-between;
+      font-size: 0.72rem; color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    .progress-track {
+      height: 6px; background: var(--border);
+      border-radius: 3px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 3px;
+      background: var(--green-light);
+      transition: width 1.2s cubic-bezier(.22,1,.36,1);
+    }
+
+    /* ════════════════════════════
+       CHART SECTION
+    ════════════════════════════ */
+    .chart-section { margin-bottom: 1.5rem; }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .chart-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .chart-card-header h3 {
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--text); text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .chart-tabs {
+      display: flex; gap: 0.3rem;
+    }
+    .chart-tab {
+      padding: 0.28rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .chart-tab.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+    .chart-body { padding: 1.4rem; }
+    .chart-body canvas { max-height: 220px; }
+
+    /* ════════════════════════════
+       BADGES
+    ════════════════════════════ */
+    .badges-section { margin-bottom: 1.5rem; }
+
+    .badges-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .badge-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem 1rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .badge-card:hover { border-color: var(--border-lit); transform: translateY(-2px); }
+    .badge-card.locked { opacity: 0.38; }
+
+    .badge-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      margin: 0 auto 0.75rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .badge-name {
+      font-size: 0.8rem; font-weight: 600;
+      color: var(--text); margin-bottom: 0.2rem;
+    }
+    .badge-desc {
+      font-size: 0.68rem; color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .badge-earned {
+      display: inline-block;
+      margin-top: 0.5rem;
+      font-size: 0.65rem; font-weight: 700;
+      color: var(--green-light);
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* ════════════════════════════
+       LEADERBOARD
+    ════════════════════════════ */
+    .leaderboard-section { margin-bottom: 1.5rem; }
+
+    .leaderboard-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .leaderboard-header {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .leaderboard-header h3 {
+      font-size: 0.88rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .your-rank-pill {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-lit);
+      border-radius: 999px;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.72rem; color: var(--green-light);
+      font-weight: 600;
+    }
+
+    .leaderboard-row {
+      display: flex; align-items: center;
+      padding: 0.85rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+      transition: background 0.15s;
+    }
+    .leaderboard-row:last-child { border-bottom: none; }
+    .leaderboard-row:hover { background: var(--bg-raised); }
+    .leaderboard-row.you {
+      background: rgba(45,122,79,0.1);
+      border-left: 3px solid var(--green-light);
+    }
+
+    .rank-num {
+      width: 28px; text-align: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text-muted); flex-shrink: 0;
+    }
+    .rank-num.gold   { color: var(--gold-light); }
+    .rank-num.silver { color: var(--silver); }
+    .rank-num.bronze { color: var(--bronze); }
+
+    .rank-medal {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .rank-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg-raised);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      color: var(--green-light); flex-shrink: 0;
+      text-transform: uppercase;
+    }
+    .leaderboard-row.you .rank-avatar {
+      border-color: var(--green-light);
+    }
+
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name {
+      font-size: 0.88rem; font-weight: 600;
+      color: var(--text); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .rank-scans {
+      font-size: 0.72rem; color: var(--text-muted);
+    }
+
+    .rank-pts {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--green-light); flex-shrink: 0;
+    }
+
+    /* ── Bar inside leaderboard row ── */
+    .rank-bar-wrap {
+      width: 80px; flex-shrink: 0;
+    }
+    .rank-bar-track {
+      height: 4px; background: var(--border);
+      border-radius: 2px; overflow: hidden;
+    }
+    .rank-bar-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--green);
+    }
+
+    /* ════════════════════════════
+       REDEEM TEASER
+    ════════════════════════════ */
+    .redeem-teaser {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--green-light);
+      border-radius: 16px;
+      padding: 1.4rem 1.6rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .redeem-teaser-left { display: flex; flex-direction: column; gap: 0.3rem; }
+    .redeem-teaser-label {
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .redeem-teaser-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--text);
+    }
+    .redeem-teaser-sub {
+      font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;
+    }
+    .redeem-chips {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem;
+    }
+    .redeem-chip {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.22rem 0.65rem;
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted);
+    }
+    .btn-go-rewards {
+      padding: 0.72rem 1.5rem;
+      background: var(--green);
+      border: none; border-radius: 10px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      text-decoration: none; white-space: nowrap;
+      transition: filter 0.2s, transform 0.15s;
+      display: inline-block;
+    }
+    .btn-go-rewards:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* ════════════════════════════
+       RESPONSIVE
+    ════════════════════════════ */
+    @media (max-width: 680px) {
+      .topbar { padding: 0.9rem 1rem; }
+      .page-wrap { padding: 1.5rem 1rem 4rem; }
+      .hero-stats { grid-template-columns: 1fr 1fr; }
+      .hero-stats .stat-card:first-child { grid-column: 1 / -1; }
+      .stat-card.primary .stat-value { font-size: 2.4rem; }
+      .rank-bar-wrap { display: none; }
+      .badges-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 400px) {
+      .badges-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-stats { grid-template-columns: 1fr; }
+    }
+
+    /* ── entrance animations ── */
+    .fade-up {
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp 0.5s ease forwards;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: none; }
+    }
+    .fade-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-up:nth-child(2) { animation-delay: 0.12s; }
+    .fade-up:nth-child(3) { animation-delay: 0.19s; }
+    .fade-up:nth-child(4) { animation-delay: 0.26s; }
+    .fade-up:nth-child(5) { animation-delay: 0.33s; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-right">
+      <div class="nav-points" id="navPoints">2,400 pts</div>
+      <a href="camera.html" class="nav-btn">Snap Waste</a>
+      <a href="games.html" class="nav-btn">Game Zone</a>
+      <a href="rewards.html" class="nav-btn">Rewards</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header fade-up">
+      <div class="rule"></div>
+      <h1>Your Eco Impact</h1>
+      <p>Track your sustainability journey, earn badges, and see how you rank against other WasteWatchers.</p>
+    </div>
+
+    <!-- ════════════════════════════
+         HERO STATS
+    ════════════════════════════ -->
+    <div class="hero-stats">
+
+      <div class="stat-card primary fade-up">
+        <div class="level-badge" id="levelBadge">Level 3</div>
+        <div class="stat-label">Total Eco-Points</div>
+        <div class="stat-value" id="totalPoints">2,400</div>
+        <div class="stat-sub">+100 pts from last scan</div>
+        <div class="level-progress">
+          <div class="level-progress-header">
+            <span>Progress to Level 4</span>
+            <span id="progressLabel">2,400 / 3,500</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width: 68%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card fade-up">
+        <div class="stat-label">Items Scanned</div>
+        <div class="stat-value" style="font-size:2rem;">18</div>
+        <div class="stat-sub">across all categories</div>
+      </div>
+
+      <div class="stat-card fade-up">
+        <div class="stat-label">Global Rank</div>
+        <div class="stat-value" style="font-size:2rem;">#4</div>
+        <div class="stat-sub">top 10% of users</div>
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════
+         SCAN HISTORY CHART
+    ════════════════════════════ -->
+    <div class="chart-section fade-up">
+      <div class="sec-label">Scan History</div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <h3>Points Earned Over Time</h3>
+          <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChart('week', this)">Week</button>
+            <button class="chart-tab" onclick="switchChart('month', this)">Month</button>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="scanChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         BADGES
+    ════════════════════════════ -->
+    <div class="badges-section fade-up">
+      <div class="sec-label">Badges & Achievements</div>
+      <div class="badges-grid">
+
+        <div class="badge-card">
+          <div class="badge-icon" style="background:#1a3d2a;">
+            <span style="font-size:1.5rem;">♻</span>
+          </div>
+          <div class="badge-name">First Scan</div>
+          <div class="badge-desc">Completed your first waste scan</div>
+          <span class="badge-earned">Earned</span>
+        </div>
+
+        <div class="badge-card">
+          <div class="badge-icon" style="background:#1a3d2a;">
+            <span style="font-size:1.5rem;">🌿</span>
+          </div>
+          <div class="badge-name">Green Starter</div>
+          <div class="badge-desc">Reached 100 eco-points</div>
+          <span class="badge-earned">Earned</span>
+        </div>
+
+        <div class="badge-card">
+          <div class="badge-icon" style="background:#1a3d2a;">
+            <span style="font-size:1.5rem;">⚡</span>
+          </div>
+          <div class="badge-name">On a Streak</div>
+          <div class="badge-desc">Scanned waste 5 days in a row</div>
+          <span class="badge-earned">Earned</span>
+        </div>
+
+        <div class="badge-card">
+          <div class="badge-icon" style="background:#1a3d2a;">
+            <span style="font-size:1.5rem;">🔬</span>
+          </div>
+          <div class="badge-name">Sorter Pro</div>
+          <div class="badge-desc">Scanned all 6 waste categories</div>
+          <span class="badge-earned">Earned</span>
+        </div>
+
+        <div class="badge-card locked">
+          <div class="badge-icon" style="background:#162a1e;">
+            <span style="font-size:1.5rem;">🏆</span>
+          </div>
+          <div class="badge-name">Top 3</div>
+          <div class="badge-desc">Reach top 3 on the leaderboard</div>
+          <span class="badge-earned" style="color:var(--text-muted);">Locked</span>
+        </div>
+
+        <div class="badge-card locked">
+          <div class="badge-icon" style="background:#162a1e;">
+            <span style="font-size:1.5rem;">💎</span>
+          </div>
+          <div class="badge-name">500 Club</div>
+          <div class="badge-desc">Accumulate 500 eco-points</div>
+          <span class="badge-earned" style="color:var(--text-muted);">Locked</span>
+        </div>
+
+        <div class="badge-card locked">
+          <div class="badge-icon" style="background:#162a1e;">
+            <span style="font-size:1.5rem;">🌍</span>
+          </div>
+          <div class="badge-name">Earth Guard</div>
+          <div class="badge-desc">30 consecutive days active</div>
+          <span class="badge-earned" style="color:var(--text-muted);">Locked</span>
+        </div>
+
+        <div class="badge-card locked">
+          <div class="badge-icon" style="background:#162a1e;">
+            <span style="font-size:1.5rem;">🔥</span>
+          </div>
+          <div class="badge-name">On Fire</div>
+          <div class="badge-desc">Scan 10 items in one day</div>
+          <span class="badge-earned" style="color:var(--text-muted);">Locked</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════════════════════════
+         REDEEM TEASER
+    ════════════════════════════ -->
+    <div class="redeem-teaser fade-up">
+      <div class="redeem-teaser-left">
+        <div class="redeem-teaser-label">Rewards Store</div>
+        <div class="redeem-teaser-title">Turn points into real rewards</div>
+        <div class="redeem-teaser-sub">Redeem your eco-points for canteen discounts, Swiggy vouchers, Amazon gift cards and more.</div>
+        <div class="redeem-chips">
+          <span class="redeem-chip">Canteen Discount</span>
+          <span class="redeem-chip">Swiggy Off</span>
+          <span class="redeem-chip">Amazon Voucher</span>
+          <span class="redeem-chip">Campus Rewards</span>
+        </div>
+      </div>
+      <a href="rewards.html" class="btn-go-rewards">Redeem Points</a>
+    </div>
+
+    <!-- ════════════════════════════
+         LEADERBOARD
+    ════════════════════════════ -->
+    <div class="leaderboard-section fade-up">
+      <div class="sec-label">Leaderboard</div>
+      <div class="leaderboard-card">
+
+        <div class="leaderboard-header">
+          <h3>Top WasteWatchers</h3>
+          <div class="your-rank-pill">You are #4</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num gold">1</div>
+          <div class="rank-avatar">AK</div>
+          <div class="rank-info">
+            <div class="rank-name">Aryan K.</div>
+            <div class="rank-scans">58 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:100%; background:var(--gold-light);"></div></div>
+          </div>
+          <div class="rank-pts" style="color:var(--gold-light);">5,800</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num silver">2</div>
+          <div class="rank-avatar">SP</div>
+          <div class="rank-info">
+            <div class="rank-name">Sneha P.</div>
+            <div class="rank-scans">47 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:81%; background:var(--silver);"></div></div>
+          </div>
+          <div class="rank-pts" style="color:var(--silver);">4,700</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num bronze">3</div>
+          <div class="rank-avatar">RV</div>
+          <div class="rank-info">
+            <div class="rank-name">Rahul V.</div>
+            <div class="rank-scans">36 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:62%; background:var(--bronze);"></div></div>
+          </div>
+          <div class="rank-pts" style="color:var(--bronze);">3,600</div>
+        </div>
+
+        <!-- YOU -->
+        <div class="leaderboard-row you">
+          <div class="rank-num" style="color:var(--green-light);">4</div>
+          <div class="rank-avatar">YO</div>
+          <div class="rank-info">
+            <div class="rank-name">You</div>
+            <div class="rank-scans">24 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:41%;"></div></div>
+          </div>
+          <div class="rank-pts">2,400</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num">5</div>
+          <div class="rank-avatar">NM</div>
+          <div class="rank-info">
+            <div class="rank-name">Neha M.</div>
+            <div class="rank-scans">19 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:33%;"></div></div>
+          </div>
+          <div class="rank-pts">1,900</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num">6</div>
+          <div class="rank-avatar">KS</div>
+          <div class="rank-info">
+            <div class="rank-name">Karan S.</div>
+            <div class="rank-scans">15 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:26%;"></div></div>
+          </div>
+          <div class="rank-pts">1,500</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num">7</div>
+          <div class="rank-avatar">PR</div>
+          <div class="rank-info">
+            <div class="rank-name">Priya R.</div>
+            <div class="rank-scans">11 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:19%;"></div></div>
+          </div>
+          <div class="rank-pts">1,100</div>
+        </div>
+
+        <div class="leaderboard-row">
+          <div class="rank-num">8</div>
+          <div class="rank-avatar">DT</div>
+          <div class="rank-info">
+            <div class="rank-name">Dev T.</div>
+            <div class="rank-scans">8 scans</div>
+          </div>
+          <div class="rank-bar-wrap">
+            <div class="rank-bar-track"><div class="rank-bar-fill" style="width:14%;"></div></div>
+          </div>
+          <div class="rank-pts">800</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <!-- /page-wrap -->
+
+
+  <script>
+    // ── Chart data ──
+    const weekData = {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      points: [100, 300, 200, 400, 100, 500, 200]
+    };
+    const monthData = {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      points: [600, 800, 500, 900]
+    };
+
+    const ctx = document.getElementById('scanChart').getContext('2d');
+
+    const chartConfig = {
+      type: 'bar',
+      data: {
+        labels: weekData.labels,
+        datasets: [{
+          label: 'Eco-Points',
+          data: weekData.points,
+          backgroundColor: 'rgba(45, 122, 79, 0.7)',
+          borderColor: '#4caf7d',
+          borderWidth: 1,
+          borderRadius: 6,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f2a1a',
+            borderColor: '#2d7a4f',
+            borderWidth: 1,
+            titleColor: '#e8f0eb',
+            bodyColor: '#7a9e87',
+            callbacks: {
+              label: ctx => ' ' + ctx.parsed.y + ' pts'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(31,74,46,0.5)', drawBorder: false },
+            ticks: { color: '#7a9e87', font: { family: 'DM Sans', size: 11 } },
+            border: { display: false }
+          },
+          y: {
+            grid: { color: 'rgba(31,74,46,0.5)', drawBorder: false },
+            ticks: { color: '#7a9e87', font: { family: 'DM Sans', size: 11 } },
+            border: { display: false }
+          }
+        }
+      }
+    };
+
+    const scanChart = new Chart(ctx, chartConfig);
+
+    function switchChart(period, btn) {
+      document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const d = period === 'week' ? weekData : monthData;
+      scanChart.data.labels = d.labels;
+      scanChart.data.datasets[0].data = d.points;
+      scanChart.update();
+    }
+
+    // ── Animate progress bar on load ──
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('progressFill').style.width = '68%';
+      }, 400);
+    });
+
+  async function loadUserProfile() {
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("http://127.0.0.1:5000/api/user/me", {
+      headers: {
+          "Authorization": "Bearer " + token
+      }
+  });
+
+  const data = await res.json();
+
+  if(data.status === "success"){
+
+      const user = data.user;
+
+      document.getElementById("navPoints").textContent =
+        user.points + " pts";
+
+      document.getElementById("totalPoints").textContent =
+        user.points;
+
+      document.getElementById("levelBadge").textContent =
+        "Level " + user.level;
+
+  }
+
+}
+
+loadUserProfile();
+
+async function updateNavbarPoints(){
+
+  const token = localStorage.getItem("token");
+
+  if(!token) return;
+
+  const res = await fetch("http://127.0.0.1:5000/api/user/me", {
+      headers: {
+          "Authorization": "Bearer " + token
+      }
+  });
+
+  const data = await res.json();
+
+  if(data.status === "success"){
+      const pts = data.user.points;
+      const nav = document.querySelector(".nav-points");
+      if(nav) nav.textContent = pts + " pts";
+  }
+
+}
+
+updateNavbarPoints();
+
+async function loadLeaderboard(){
+
+ const res = await fetch("http://127.0.0.1:5000/api/leaderboard");
+
+ const data = await res.json();
+
+ console.log(data);
+
+}
+
+loadLeaderboard();
+
+async function loadDashboard() {
+  try {
+
+    const res = await fetch("http://127.0.0.1:5000/api/user/me");
+    const data = await res.json();
+
+    if(data.status === "success"){
+
+        const pts = data.user.points;
+
+        document.getElementById("totalPoints").textContent = pts;
+
+        const level = Math.floor(pts / 500) + 1;
+        document.getElementById("levelBadge").textContent = "Level " + level;
+
+        const nextLevel = level * 500;
+        document.getElementById("progressLabel").textContent =
+            pts + " / " + nextLevel;
+
+        const percent = (pts / nextLevel) * 100;
+        document.getElementById("progressFill").style.width = percent + "%";
+
+    }
+
+  } catch(err){
+      console.log("Dashboard load error");
+  }
+}
+
+loadDashboard();
+
+  </script>
+
+</body>
+</html>

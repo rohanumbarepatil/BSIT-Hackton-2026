@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WasteWatchers — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-deep:   #0d2b1e;
+      --green-mid:    #1a4731;
+      --green-accent: #2d7a4f;
+      --green-light:  #4caf7d;
+      --green-glow:   #6fcf97;
+      --cream:        #f0ede6;
+      --white:        #ffffff;
+      --text-muted:   #8aab97;
+      --overlay:      rgba(8, 22, 14, 0.72);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--green-deep);
+      overflow: hidden;
+    }
+
+    /* ── Hero background (same as landing) ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: url('https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+    }
+    .bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(8,30,18,0.78) 0%, rgba(13,43,30,0.65) 100%);
+    }
+
+    /* ── Overlay trigger (simulates landing page backdrop) ── */
+    .page-overlay {
+      position: fixed; inset: 0; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── Modal ── */
+    .modal {
+      position: relative; z-index: 10;
+      width: min(440px, 92vw);
+      background: rgba(13, 28, 20, 0.82);
+      border: 1px solid rgba(77, 175, 125, 0.25);
+      border-radius: 20px;
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(111,207,151,0.08) inset;
+      padding: 2.4rem 2.4rem 2rem;
+      animation: rise 0.45s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(28px) scale(0.97); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* close btn */
+    .close-btn {
+      position: absolute; top: 1rem; right: 1rem;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid rgba(77,175,125,0.3);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-muted);
+      font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .close-btn:hover { background: rgba(77,175,125,0.15); color: var(--white); }
+
+    /* logo */
+    .logo-wrap {
+      display: flex; align-items: center; gap: .65rem;
+      margin-bottom: 1.4rem;
+    }
+    .logo-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--green-accent), var(--green-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem;
+      color: var(--white);
+      letter-spacing: .02em;
+    }
+
+    /* tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(77,175,125,0.2);
+      margin-bottom: 1.8rem;
+      gap: 0;
+    }
+    .tab-btn {
+      flex: 1; padding: .65rem 0; background: none; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: .9rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      position: relative; transition: color .2s;
+    }
+    .tab-btn::after {
+      content: ''; position: absolute; bottom: -1px; left: 10%; right: 10%;
+      height: 2px; border-radius: 2px;
+      background: var(--green-light);
+      transform: scaleX(0); transition: transform .25s ease;
+    }
+    .tab-btn.active { color: var(--green-glow); }
+    .tab-btn.active::after { transform: scaleX(1); }
+
+    /* panels */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* heading */
+    .panel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.55rem;
+      color: var(--white);
+      margin-bottom: .3rem;
+    }
+    .panel-sub {
+      font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem;
+    }
+
+    /* fields */
+    .field { margin-bottom: 1.1rem; }
+    .field label {
+      display: block; font-size: .78rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: .08em; margin-bottom: .45rem;
+    }
+    .field-wrap { position: relative; }
+    .field-wrap .icon {
+      position: absolute; left: .9rem; top: 50%; transform: translateY(-50%);
+      font-size: 1rem; pointer-events: none;
+      color: var(--green-accent);
+    }
+    .field input {
+      width: 100%;
+      padding: .75rem .9rem .75rem 2.5rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(77,175,125,0.2);
+      border-radius: 10px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif; font-size: .9rem;
+      outline: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+    .field input::placeholder { color: rgba(138,171,151,0.5); }
+    .field input:focus {
+      border-color: var(--green-light);
+      background: rgba(77,175,125,0.08);
+      box-shadow: 0 0 0 3px rgba(77,175,125,0.12);
+    }
+
+    /* password toggle */
+    .toggle-pw {
+      position: absolute; right: .9rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--text-muted); font-size: .9rem;
+      transition: color .2s;
+    }
+    .toggle-pw:hover { color: var(--green-light); }
+
+    /* forgot */
+    .forgot {
+      display: block; text-align: right;
+      font-size: .78rem; color: var(--green-glow);
+      text-decoration: none; margin-top: -.5rem; margin-bottom: 1.4rem;
+      transition: opacity .2s;
+    }
+    .forgot:hover { opacity: .75; }
+
+    /* primary btn */
+    .btn-primary {
+      width: 100%; padding: .85rem;
+      background: linear-gradient(135deg, var(--green-accent) 0%, var(--green-light) 100%);
+      border: none; border-radius: 12px;
+      color: var(--white); font-family: 'DM Sans', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      cursor: pointer; letter-spacing: .03em;
+      box-shadow: 0 4px 20px rgba(45,122,79,0.4);
+      transition: transform .18s, box-shadow .18s, filter .18s;
+      position: relative; overflow: hidden;
+    }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0; transition: opacity .2s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(45,122,79,0.5); filter: brightness(1.05); }
+    .btn-primary:hover::after { opacity: 1; }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* divider */
+    .divider {
+      display: flex; align-items: center; gap: .8rem;
+      margin: 1.2rem 0; color: rgba(138,171,151,0.4); font-size: .75rem;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(77,175,125,0.15);
+    }
+
+    /* google btn */
+    .btn-google {
+      width: 100%; padding: .75rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(77,175,125,0.2);
+      border-radius: 12px;
+      color: var(--cream); font-family: 'DM Sans', sans-serif;
+      font-size: .88rem; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: .6rem;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-google:hover { background: rgba(255,255,255,0.09); border-color: rgba(77,175,125,0.4); }
+
+    /* footer note */
+    .switch-note {
+      text-align: center; margin-top: 1.3rem;
+      font-size: .8rem; color: var(--text-muted);
+    }
+    .switch-note a {
+      color: var(--green-glow); text-decoration: none; font-weight: 600;
+    }
+    .switch-note a:hover { text-decoration: underline; }
+
+    /* terms note for register */
+    .terms-note {
+      text-align: center; font-size: .72rem;
+      color: rgba(138,171,151,0.55); margin-top: .9rem; line-height: 1.5;
+    }
+    .terms-note a { color: var(--green-glow); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 480px) {
+      .modal { padding: 1.8rem 1.4rem 1.5rem; border-radius: 16px; }
+      .panel-title { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<div class="page-overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="WasteWatchers login">
+
+    <button class="close-btn" onclick="this.closest('.modal').style.display='none'" aria-label="Close">✕</button>
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <div class="logo-icon">♻️</div>
+      <span class="logo-text">WasteWatchers</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" onclick="switchTab('login', this)">Sign In</button>
+      <button class="tab-btn" role="tab" onclick="switchTab('register', this)">Create Account</button>
+    </div>
+
+    <!-- ── LOGIN PANEL ── -->
+    <div class="panel active" id="panel-login">
+      <h2 class="panel-title">Welcome back 🌿</h2>
+      <p class="panel-sub">Continue your sustainability journey</p>
+
+      <div class="field">
+        <label for="login-user">Username</label>
+        <div class="field-wrap">
+          <span class="icon">👤</span>
+          <input id="login-user" type="text" placeholder="your_username" autocomplete="username"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="login-pass">Password</label>
+        <div class="field-wrap">
+          <span class="icon">🔒</span>
+          <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          <button class="toggle-pw" onclick="togglePw('login-pass', this)" type="button">👁</button>
+        </div>
+      </div>
+
+      <a href="#" class="forgot">Forgot password?</a>
+
+      <button class="btn-primary" onclick="handleLogin()">Log In &nbsp;→</button>
+
+      <div class="divider">or continue with</div>
+
+      <button class="btn-google">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+        Continue with Google
+      </button>
+
+      <p class="switch-note">New here? <a href="#" onclick="switchTabByName('register')">Create an account</a></p>
+    </div>
+
+    <!-- ── REGISTER PANEL ── -->
+    <div class="panel" id="panel-register">
+      <h2 class="panel-title">Join WasteWatchers 🌍</h2>
+      <p class="panel-sub">Start earning eco-points today</p>
+
+      <div class="field">
+        <label for="reg-user">Username</label>
+        <div class="field-wrap">
+          <span class="icon">👤</span>
+          <input id="reg-user" type="text" placeholder="choose_a_username" autocomplete="username"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="reg-email">Email</label>
+        <div class="field-wrap">
+          <span class="icon">📧</span>
+          <input id="reg-email" type="email" placeholder="you@email.com" autocomplete="email"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="reg-pass">Password</label>
+        <div class="field-wrap">
+          <span class="icon">🔒</span>
+          <input id="reg-pass" type="password" placeholder="min. 8 characters" autocomplete="new-password"/>
+          <button class="toggle-pw" onclick="togglePw('reg-pass', this)" type="button">👁</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="handleRegister()">Create Account &nbsp;🌱</button>
+
+      <p class="terms-note">
+        By signing up you agree to our <a href="Terms.html">Terms of Service</a> and <a href="Terms.html">Privacy Policy</a>
+      </p>
+
+      <p class="switch-note" style="margin-top:.8rem">Already have an account? <a href="Terms.html" onclick="switchTabByName('login')">Sign in</a></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + name).classList.add('active');
+  }
+
+  function switchTabByName(name) {
+    const btn = document.querySelectorAll('.tab-btn')[name === 'login' ? 0 : 1];
+    switchTab(name, btn);
+  }
+
+  function togglePw(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  function handleLogin() {
+    const user = document.getElementById('login-user').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    if (!user || !pass) { alert('Please fill in all fields.'); return; }
+    // TODO: POST /api/login  { username: user, password: pass }
+    alert('Login endpoint ready to connect! ✅');
+  }
+
+  function handleRegister() {
+    const user  = document.getElementById('reg-user').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const pass  = document.getElementById('reg-pass').value;
+    if (!user || !email || !pass) { alert('Please fill in all fields.'); return; }
+    if (pass.length < 8) { alert('Password must be at least 8 characters.'); return; }
+    // TODO: POST /api/register  { username: user, email, password: pass }
+    alert('Register endpoint ready to connect! ✅');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — Bin Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#0a1f14; --bg-card:#0f2a1a; --bg-raised:#152f1e;
+      --border:#1f4a2e; --border-lit:#2d7a4f;
+      --green:#2d7a4f; --green-light:#4caf7d;
+      --text:#e8f0eb; --text-muted:#7a9e87;
+    }
+    html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+    body::before { content:''; position:fixed; inset:0; z-index:0; background-image:repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(45,122,79,0.018) 40px,rgba(45,122,79,0.018) 41px); pointer-events:none; }
+
+    /* NAVBAR */
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:1.1rem 2rem; border-bottom:1px solid var(--border); position:relative; z-index:100; background:var(--bg); }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.25rem; color:var(--text); text-decoration:none; }
+    .nav-right { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; }
+    .nav-points { background:var(--bg-raised); border:1px solid var(--border); border-radius:999px; padding:0.3rem 0.9rem; font-size:0.78rem; color:var(--green-light); font-weight:600; }
+    .nav-btn { padding:0.38rem 1rem; border:1px solid var(--border-lit); border-radius:999px; color:var(--text); font-size:0.82rem; font-weight:500; text-decoration:none; background:transparent; transition:background 0.2s,color 0.2s; white-space:nowrap; }
+    .nav-btn:hover, .nav-btn.active { background:var(--green); border-color:var(--green); color:#fff; }
+
+    /* LAYOUT */
+    .page-layout { display:flex; height:calc(100vh - 61px); position:relative; z-index:1; }
+    #map { flex:1; height:100%; background:#0d1f14; }
+    .sidebar { width:320px; flex-shrink:0; background:var(--bg-card); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+    .sidebar-header { padding:1.2rem 1.4rem 1rem; border-bottom:1px solid var(--border); }
+    .sidebar-header h2 { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:900; margin-bottom:0.2rem; }
+    .sidebar-header p { font-size:0.78rem; color:var(--text-muted); }
+
+    .filter-row { padding:0.8rem 1.4rem; border-bottom:1px solid var(--border); display:flex; gap:0.4rem; flex-wrap:wrap; }
+    .filter-chip { padding:0.25rem 0.7rem; border-radius:999px; border:1px solid var(--border); background:none; font-family:'DM Sans',sans-serif; font-size:0.7rem; font-weight:600; color:var(--text-muted); cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:0.3rem; }
+    .filter-chip.active { background:var(--green); border-color:var(--green); color:#fff; }
+    .filter-chip:hover:not(.active) { border-color:var(--border-lit); color:var(--text); }
+    .chip-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+    .bin-list { flex:1; overflow-y:auto; padding:0.6rem 0; }
+    .bin-list::-webkit-scrollbar { width:4px; }
+    .bin-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+    .bin-item { padding:0.9rem 1.4rem; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; display:flex; align-items:flex-start; gap:0.85rem; }
+    .bin-item:hover { background:var(--bg-raised); }
+    .bin-item.selected { background:rgba(45,122,79,0.12); border-left:3px solid var(--green-light); }
+    .bin-dot-wrap { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    .bin-item-info { flex:1; min-width:0; }
+    .bin-item-name { font-size:0.88rem; font-weight:600; color:var(--text); margin-bottom:0.15rem; }
+    .bin-item-meta { font-size:0.72rem; color:var(--text-muted); }
+    .bin-item-dist { font-size:0.72rem; font-weight:600; color:var(--green-light); white-space:nowrap; margin-top:2px; }
+
+    /* MAP */
+    #map { flex:1; background:#0d1f14; }
+    .leaflet-tile { filter:brightness(0.5) saturate(0.4) hue-rotate(100deg); }
+    .leaflet-container { background:#0a1a0f; }
+    .leaflet-control-zoom a { background:var(--bg-card)!important; border-color:var(--border)!important; color:var(--text)!important; }
+    .leaflet-control-attribution { background:rgba(10,31,20,0.8)!important; color:var(--text-muted)!important; font-size:10px!important; }
+    .leaflet-control-attribution a { color:var(--green-light)!important; }
+    .leaflet-popup-content-wrapper { background:var(--bg-card)!important; border:1px solid var(--border-lit)!important; border-radius:14px!important; box-shadow:0 8px 32px rgba(0,0,0,0.5)!important; color:var(--text)!important; font-family:'DM Sans',sans-serif!important; }
+    .leaflet-popup-tip { background:var(--bg-card)!important; }
+    .leaflet-popup-close-button { color:var(--text-muted)!important; font-size:18px!important; top:8px!important; right:10px!important; }
+
+    .popup-inner { padding:0.3rem 0.2rem; min-width:200px; }
+    .popup-tag { display:inline-block; padding:0.18rem 0.6rem; border-radius:6px; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.5rem; }
+    .popup-name { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; margin-bottom:0.25rem; }
+    .popup-detail { font-size:0.78rem; color:var(--text-muted); line-height:1.5; margin-bottom:0.5rem; }
+    .popup-dist { font-size:0.78rem; font-weight:600; color:var(--green-light); margin-bottom:0.6rem; }
+    .popup-accepts { font-size:0.7rem; color:var(--text-muted); margin-bottom:0.35rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; }
+    .popup-types { display:flex; gap:0.35rem; flex-wrap:wrap; }
+    .popup-type-chip { padding:0.18rem 0.55rem; border-radius:5px; font-size:0.68rem; font-weight:600; background:var(--bg-raised); border:1px solid var(--border); color:var(--text-muted); }
+
+    /* LOCATE BUTTON */
+    .locate-btn { position:absolute; bottom:2rem; right:1rem; z-index:500; background:var(--bg-card); border:1px solid var(--border-lit); border-radius:10px; padding:0.6rem 1rem; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem; transition:background 0.2s; box-shadow:0 4px 16px rgba(0,0,0,0.4); }
+    .locate-btn:hover { background:var(--bg-raised); }
+
+    /* MOBILE */
+    .mob-toggle { display:none; position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); z-index:200; background:var(--green); border:none; border-radius:999px; padding:0.65rem 1.4rem; color:#fff; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:600; cursor:pointer; box-shadow:0 4px 20px rgba(45,122,79,0.5); }
+
+    @media (max-width:768px) {
+      .topbar { padding:0.9rem 1rem; }
+      .nav-btn { font-size:0.75rem; padding:0.32rem 0.75rem; }
+      .sidebar { position:fixed; bottom:0; left:0; right:0; width:100%; height:55vh; border-right:none; border-top:1px solid var(--border); z-index:150; transform:translateY(100%); transition:transform 0.3s cubic-bezier(.22,1,.36,1); border-radius:18px 18px 0 0; }
+      .sidebar.open { transform:translateY(0); }
+      .page-layout { display:block; height:calc(100vh - 61px); }
+      #map { height:100% !important; width:100%; }
+      .mob-toggle { display:block; }
+    }
+
+    .highlight{
+    border:3px solid #4CAF7D;
+    transform:scale(1.2);
+    box-shadow:0 0 15px #4CAF7D;
+}
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-right">
+      <div class="nav-points">2,400 pts</div>
+      <a href="camera.html"  class="nav-btn">Snap Waste</a>
+      <a href="dashboard.html" class="nav-btn">Dashboard</a>
+      <a href="games.html"   class="nav-btn">Game Zone</a>
+      <a href="rewards.html" class="nav-btn">Rewards</a>
+      <a href="map.html"     class="nav-btn active">Bin Map</a>
+    </div>
+  </nav>
+
+  <div class="page-layout">
+
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>Nearby Waste Bins</h2>
+        <p>Kalinga University Campus &amp; surroundings</p>
+      </div>
+      <div class="filter-row" id="filterRow">
+        <button class="filter-chip active" data-filter="all"     onclick="filterBins('all',this)"><span class="chip-dot" style="background:#4caf7d"></span>All</button>
+        <button class="filter-chip"        data-filter="plastic" onclick="filterBins('plastic',this)"><span class="chip-dot" style="background:#3a7ec0"></span>Plastic</button>
+        <button class="filter-chip"        data-filter="organic" onclick="filterBins('organic',this)"><span class="chip-dot" style="background:#5a9e3a"></span>Organic</button>
+        <button class="filter-chip"        data-filter="ewaste"  onclick="filterBins('ewaste',this)"><span class="chip-dot" style="background:#9b59b6"></span>E-Waste</button>
+        <button class="filter-chip"        data-filter="general" onclick="filterBins('general',this)"><span class="chip-dot" style="background:#7a8a7a"></span>General</button>
+      </div>
+      <div class="bin-list" id="binList"></div>
+    </div>
+
+    <div style="position:relative;flex:1;height:100%;min-height:0;">
+      <div id="map"></div>
+      <button class="locate-btn" onclick="locateMe()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        Locate Me
+      </button>
+    </div>
+  </div>
+
+  <button class="mob-toggle" id="mobToggle" onclick="toggleSidebar()">View Bin List</button>
+
+  <script>
+    let bins = [];
+    const urlParams = new URLSearchParams(window.location.search);
+
+    fetch("http://127.0.0.1:5000/api/bins")
+  .then(res => res.json())
+  .then(data => {
+      bins = data.bins;
+      renderAll();
+  });
+    const typeConfig = {
+      plastic:{ color:'#3a7ec0', bg:'rgba(58,126,192,0.18)',  label:'Plastic' },
+      organic:{ color:'#5a9e3a', bg:'rgba(90,158,58,0.18)',   label:'Organic' },
+      ewaste: { color:'#9b59b6', bg:'rgba(155,89,182,0.18)',  label:'E-Waste' },
+      general:{ color:'#7a8a7a', bg:'rgba(122,138,122,0.18)', label:'General' },
+    };
+
+    const map = L.map('map',{ center:[21.1627,81.7371], zoom:16 });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', maxZoom:19
+    }).addTo(map);
+
+    function makeIcon(type) {
+      const c = typeConfig[type].color;
+      return L.divIcon({
+        html:`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40"><path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24S32 26 32 16C32 7.163 24.837 0 16 0z" fill="${c}" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/><circle cx="16" cy="16" r="6" fill="rgba(255,255,255,0.2)"/><circle cx="16" cy="16" r="3.5" fill="white"/></svg>`,
+        className:'', iconSize:[32,40], iconAnchor:[16,40], popupAnchor:[0,-42]
+      });
+    }
+
+    let markers=[], selectedId=null, activeFilter='all';
+
+    function renderAll() {
+      markers.forEach(m=>map.removeLayer(m.marker));
+      markers=[];
+      const filtered = activeFilter==='all' ? bins : bins.filter(b=>b.type===activeFilter);
+      const list=document.getElementById('binList');
+      list.innerHTML='';
+
+      filtered.forEach((bin,i)=>{
+        const cfg=typeConfig[bin.type];
+
+        // sidebar row
+        const item=document.createElement('div');
+        item.className='bin-item'+(bin.id===selectedId?' selected':'');
+        item.id='bin-item-'+bin.id;
+        item.innerHTML=`
+          <div class="bin-dot-wrap" style="background:${cfg.bg}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${cfg.color}" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </div>
+          <div class="bin-item-info">
+            <div class="bin-item-name">${bin.name}</div>
+            <div class="bin-item-meta">${bin.location}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="bin-item-dist">${bin.dist}</div>
+            <div style="font-size:0.65rem;color:${bin.status==='Available'?'var(--green-light)':'#e8b84b'};font-weight:600;margin-top:2px">${bin.status}</div>
+          </div>`;
+        item.onclick=()=>selectBin(bin.id);
+        list.appendChild(item);
+
+        // marker
+        const marker=L.marker([bin.lat,bin.lng],{icon:makeIcon(bin.type)}).addTo(map);
+        marker.bindPopup(`
+          <div class="popup-inner">
+            <span class="popup-tag" style="background:${cfg.bg};color:${cfg.color}">${cfg.label}</span>
+            <div class="popup-name">${bin.name}</div>
+            <div class="popup-detail">${bin.location}</div>
+            <div class="popup-dist">&#x1F4CD; ${bin.dist} away &nbsp;&middot;&nbsp; <span style="color:${bin.status==='Available'?'var(--green-light)':'#e8b84b'}">${bin.status}</span></div>
+            <div class="popup-accepts">Accepts</div>
+            <div class="popup-types">${bin.accepts.map(a=>`<span class="popup-type-chip">${a}</span>`).join('')}</div>
+          </div>`,{maxWidth:260});
+        marker.on('click',()=>selectBin(bin.id));
+        markers.push({id:bin.id,marker});
+      });
+    }
+
+    function selectBin(id) {
+      selectedId=id;
+      const bin=bins.find(b=>b.id===id); if(!bin) return;
+      map.setView([bin.lat,bin.lng],17,{animate:true});
+      const m=markers.find(m=>m.id===id); if(m) m.marker.openPopup();
+      document.querySelectorAll('.bin-item').forEach(el=>el.classList.remove('selected'));
+      const el=document.getElementById('bin-item-'+id);
+      if(el){el.classList.add('selected');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
+      if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('open');document.getElementById('mobToggle').textContent='View Bin List';}
+    }
+
+    function filterBins(type,btn) {
+      activeFilter=type;
+      document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+      btn.classList.add('active');
+      renderAll();
+    }
+
+    let userMarker=null;
+    function locateMe(){
+
+    if(!navigator.geolocation){
+        alert("Geolocation not supported");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        if(userMarker){
+            map.removeLayer(userMarker);
+        }
+
+        userMarker = L.marker([userLat, userLng]).addTo(map)
+            .bindPopup("You are here")
+            .openPopup();
+
+        map.setView([userLat, userLng], 16);
+
+        if(wasteType){
+
+            const targetBin = bins.find(b => b.type === wasteType);
+
+            if(targetBin){
+
+                L.Routing.control({
+                    waypoints: [
+                        L.latLng(userLat, userLng),
+                        L.latLng(targetBin.lat, targetBin.lng)
+                    ],
+                    routeWhileDragging:false,
+                    createMarker: function(){ return null }
+                }).addTo(map);
+
+            }
+
+        }
+
+    });
+}
+    function toggleSidebar() {
+      const sb=document.getElementById('sidebar'),btn=document.getElementById('mobToggle');
+      const open=sb.classList.toggle('open');
+      btn.textContent=open?'Close List':'View Bin List';
+    }
+
+    renderAll();
+
+    // campus boundary
+    L.circle([21.1627,81.7371],{
+      radius:400, color:'#2d7a4f',
+      fillColor:'rgba(45,122,79,0.04)', fillOpacity:1,
+      weight:1.5, dashArray:'6 4'
+    }).addTo(map).bindTooltip('Kalinga University Campus',{direction:'top'});
+
+async function updateNavbarPoints(){
+
+  const token = localStorage.getItem("token");
+
+  if(!token) return;
+
+  const res = await fetch("http://127.0.0.1:5000/api/user/me", {
+      headers: {
+          "Authorization": "Bearer " + token
+      }
+  });
+
+  const data = await res.json();
+
+  if(data.status === "success"){
+      const pts = data.user.points;
+      const nav = document.querySelector(".nav-points");
+      if(nav) nav.textContent = pts + " pts";
+  }
+
+}
+
+updateNavbarPoints();
+
+function syncNavbarPoints(){
+
+    const pts = localStorage.getItem("user_points");
+
+    if(!pts) return;
+
+    const nav = document.querySelector(".nav-points");
+
+    if(nav){
+        nav.textContent = pts + " pts";
+    }
+
+}
+
+syncNavbarPoints();
+
+const params = new URLSearchParams(window.location.search);
+const wasteType = params.get("waste");
+
+if(wasteType){
+
+    highlightBin(wasteType);
+
+}
+
+function highlightBin(type){
+
+    const bins = document.querySelectorAll(".bin-marker");
+
+    bins.forEach(bin => {
+
+        if(bin.dataset.type === type){
+
+            bin.classList.add("highlight");
+
+            bin.scrollIntoView({behavior:"smooth"});
+
+        }
+
+    });
+
+}
+function highlightCorrectBin(type){
+
+    const targetBin = bins.find(b => b.type === type);
+
+    if(!targetBin) return;
+
+    map.setView([targetBin.lat, targetBin.lng], 18);
+
+    L.marker([targetBin.lat, targetBin.lng], {
+        icon: makeIcon(targetBin.type)
+    }).addTo(map).bindPopup(
+        "<b>Recommended Bin</b><br>" + targetBin.name
+    ).openPopup();
+
+}
+if(wasteType){
+    highlightCorrectBin(wasteType);
+}
+  </script>
+</body>
+</html>

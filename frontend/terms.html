@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — Terms &amp; Privacy Policy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a1f14;
+      --bg-card:     #0f2a1a;
+      --bg-raised:   #152f1e;
+      --border:      #1f4a2e;
+      --border-lit:  #2d7a4f;
+      --green:       #2d7a4f;
+      --green-light: #4caf7d;
+      --text:        #e8f0eb;
+      --text-muted:  #7a9e87;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -45deg, transparent, transparent 40px,
+        rgba(45,122,79,0.018) 40px, rgba(45,122,79,0.018) 41px
+      );
+      pointer-events: none;
+    }
+
+    /* NAVBAR */
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:1.1rem 2rem; border-bottom:1px solid var(--border); position:relative; z-index:10; background:var(--bg); }
+    .nav-logo { font-family:'Playfair Display',serif; font-size:1.25rem; color:var(--text); text-decoration:none; }
+    .nav-right { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; }
+    .nav-btn { padding:0.38rem 1rem; border:1px solid var(--border-lit); border-radius:999px; color:var(--text); font-size:0.82rem; font-weight:500; text-decoration:none; background:transparent; transition:background 0.2s; }
+    .nav-btn:hover { background:var(--green); border-color:var(--green); color:#fff; }
+
+    /* LAYOUT */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 760px; margin: 0 auto;
+      padding: 3.5rem 1.5rem 6rem;
+    }
+
+    /* PAGE HEADER */
+    .page-header { margin-bottom: 3rem; }
+    .rule { width: 48px; height: 3px; background: var(--green-light); border-radius: 2px; margin-bottom: 1rem; }
+    .page-header h1 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,5vw,2.6rem); font-weight:900; line-height:1.1; margin-bottom:0.5rem; }
+    .page-header .meta { font-size:0.78rem; color:var(--text-muted); }
+
+    /* TAB SWITCHER */
+    .tab-row {
+      display: flex; gap: 0.5rem; margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border); padding-bottom: 0;
+    }
+    .tab-btn {
+      padding: 0.55rem 1.2rem;
+      background: none; border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      position: relative; transition: color 0.2s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab-btn.active { color: var(--green-light); border-bottom-color: var(--green-light); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* PANELS */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+    /* CONTENT STYLES */
+    .doc-section { margin-bottom: 2.2rem; }
+
+    .doc-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.6rem;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .doc-section h2::before {
+      content: '';
+      display: inline-block; width: 4px; height: 16px;
+      background: var(--green-light); border-radius: 2px; flex-shrink: 0;
+    }
+    .doc-section p {
+      font-size: 0.88rem; color: var(--text-muted);
+      line-height: 1.75; margin-bottom: 0.5rem;
+    }
+    .doc-section ul {
+      list-style: none; padding: 0; margin-top: 0.4rem;
+    }
+    .doc-section ul li {
+      font-size: 0.85rem; color: var(--text-muted);
+      line-height: 1.65; padding: 0.3rem 0 0.3rem 1.2rem;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-section ul li:last-child { border-bottom: none; }
+    .doc-section ul li::before {
+      content: '›'; position: absolute; left: 0;
+      color: var(--green-light); font-weight: 700;
+    }
+
+    .highlight-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-left: 3px solid var(--green-light);
+      border-radius: 0 12px 12px 0;
+      padding: 1rem 1.2rem;
+      font-size: 0.85rem; color: var(--text-muted); line-height: 1.65;
+      margin: 1rem 0;
+    }
+    .highlight-box strong { color: var(--text); }
+
+    .divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* LAST UPDATED */
+    .last-updated {
+      display: inline-block;
+      background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.25rem 0.7rem;
+      font-size: 0.7rem; font-weight: 600; color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    /* CONTACT BOX */
+    .contact-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.4rem 1.6rem;
+      margin-top: 2.5rem; text-align: center;
+    }
+    .contact-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .contact-box a {
+      color: var(--green-light); text-decoration: none; font-weight: 600;
+    }
+    .contact-box a:hover { text-decoration: underline; }
+
+    /* BACK LINK */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.8rem; color: var(--text-muted); text-decoration: none;
+      margin-bottom: 2rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--green-light); }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .topbar { padding: 0.9rem 1rem; }
+      .page-wrap { padding: 2rem 1rem 4rem; }
+    }
+
+    /* FADE */
+    .fade-up { opacity:0; transform:translateY(14px); animation:fadeUp 0.5s cubic-bezier(.22,1,.36,1) forwards; }
+    @keyframes fadeUp { to { opacity:1; transform:none; } }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-right">
+      <a href="intro.html"  class="nav-btn">Home</a>
+      <a href="about.html"  class="nav-btn">About Us</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <a href="intro.html" class="back-link fade-up">&#8592; Back to Home</a>
+
+    <div class="page-header fade-up">
+      <div class="rule"></div>
+      <h1>Terms &amp; Privacy Policy</h1>
+      <p class="meta"> WasteWatchers Platform</p>
+    </div>
+
+    <!-- TAB SWITCHER -->
+    <div class="tab-row fade-up">
+      <button class="tab-btn active" onclick="switchTab('terms', this)">Terms of Use</button>
+      <button class="tab-btn"        onclick="switchTab('privacy', this)">Privacy Policy</button>
+    </div>
+
+    <!-- ═══════════════════════════
+         TERMS OF USE
+    ═══════════════════════════ -->
+    <div class="panel active" id="panel-terms">
+
+      <div class="last-updated">Last updated: March 2026</div>
+
+      <div class="highlight-box">
+        <strong>Plain language summary:</strong> WasteWatchers is a campus eco-platform. Use it honestly, don't misuse it, and help us keep the campus clean. That's really all we ask.
+      </div>
+
+      <div class="doc-section">
+        <h2>Acceptance of Terms</h2>
+        <p>By creating an account or using WasteWatchers, you agree to these Terms of Use. If you do not agree, please do not use the platform. These terms apply to all users of the WasteWatchers web application at Kalinga University, Naya Raipur.</p>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Eligibility</h2>
+        <p>WasteWatchers is currently available exclusively to registered students, faculty and staff of Kalinga University. You must:</p>
+        <ul>
+          <li>Be a current member of the Kalinga University community</li>
+          <li>Register with a valid email address</li>
+          <li>Be at least 13 years of age</li>
+          <li>Not share your account credentials with others</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Eco-Points &amp; Rewards</h2>
+        <p>Eco-points are earned by correctly disposing waste items and completing games on the platform. Please note:</p>
+        <ul>
+          <li>Points have no monetary value outside the WasteWatchers rewards system</li>
+          <li>Points cannot be transferred between accounts</li>
+          <li>We reserve the right to adjust point values or reward availability at any time</li>
+          <li>Fraudulent scanning or manipulation of the system will result in account suspension</li>
+          <li>Redeemed vouchers are subject to partner terms and expiry dates</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Acceptable Use</h2>
+        <p>You agree not to:</p>
+        <ul>
+          <li>Upload false, misleading or inappropriate images to the platform</li>
+          <li>Attempt to manipulate AI classification results for extra points</li>
+          <li>Create multiple accounts to circumvent daily game limits</li>
+          <li>Reverse engineer, decompile or tamper with any part of the platform</li>
+          <li>Use the platform for any commercial purpose without written consent</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Intellectual Property</h2>
+        <p>All content on WasteWatchers — including the name, logo, UI design, game content and AI models — is the intellectual property of the WasteWatchers team (Sneha Khetan &amp; Surya Kumar Srivastava), developed as part of a project at Kalinga University. You may not reproduce or distribute any part without permission.</p>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Limitation of Liability</h2>
+        <p>WasteWatchers is a student-developed project and is provided on an "as is" basis. We make no guarantees regarding uptime, accuracy of AI classification results, or availability of rewards. The platform team is not liable for any loss arising from use of the application.</p>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Changes to Terms</h2>
+        <p>We may update these terms from time to time. Continued use of the platform after changes are posted constitutes your acceptance of the revised terms. We will notify active users of significant changes via the platform.</p>
+      </div>
+
+      <div class="contact-box">
+        <p>Questions about our Terms of Use?</p>
+        <a href="mailto:wastewatchers@kalinga.edu.in">wastewatchers@kalinga.edu.in</a>
+      </div>
+
+    </div>
+    <!-- /panel-terms -->
+
+
+    <!-- ═══════════════════════════
+         PRIVACY POLICY
+    ═══════════════════════════ -->
+    <div class="panel" id="panel-privacy">
+
+      <div class="last-updated">Last updated: March 2026</div>
+
+      <div class="highlight-box">
+        <strong>Plain language summary:</strong> We collect only what we need to run the platform. We do not sell your data. Your photos are used only for waste classification and are not stored permanently.
+      </div>
+
+      <div class="doc-section">
+        <h2>Information We Collect</h2>
+        <p>When you use WasteWatchers, we collect the following information:</p>
+        <ul>
+          <li><strong style="color:var(--text)">Account data</strong> — username, email address, college name</li>
+          <li><strong style="color:var(--text)">Usage data</strong> — waste items scanned, eco-points earned, games played, rewards redeemed</li>
+          <li><strong style="color:var(--text)">Images</strong> — photos you upload for waste classification (processed and not permanently stored)</li>
+          <li><strong style="color:var(--text)">Location data</strong> — only if you use the "Locate Me" feature on the Bin Map, and only with your explicit permission</li>
+          <li><strong style="color:var(--text)">Device data</strong> — browser type, device type, used to improve compatibility</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>How We Use Your Data</h2>
+        <p>Your data is used solely to operate and improve WasteWatchers:</p>
+        <ul>
+          <li>To authenticate your account and manage your eco-points balance</li>
+          <li>To classify waste items using our AI model</li>
+          <li>To display leaderboard rankings within the campus community</li>
+          <li>To process reward redemptions</li>
+          <li>To improve platform features and fix issues</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Images &amp; Camera Access</h2>
+        <p>When you scan a waste item, your image is sent to our AI classification service for processing. Images are <strong style="color:var(--text)">not permanently stored</strong> on our servers after classification is complete. Camera access is requested only when you tap "Take Photo" and is never accessed in the background.</p>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Data Sharing</h2>
+        <p>We do not sell, rent or trade your personal data. Data may be shared only in the following limited cases:</p>
+        <ul>
+          <li>With Kalinga University administration for aggregate campus sustainability reporting (no personal identifiers)</li>
+          <li>With reward partners (e.g. canteen) only to validate a redeemed voucher code</li>
+          <li>When required by law or university policy</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Data Retention</h2>
+        <p>Your account data is retained as long as your account is active. If you request deletion of your account, all personal data is removed within 30 days. Aggregate anonymised usage data (e.g. total scans per category) may be retained for research purposes.</p>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Cookies &amp; Local Storage</h2>
+        <p>WasteWatchers uses browser local storage to remember your daily game progress and session state. We do not use third-party advertising cookies. No tracking pixels or analytics services are currently active on this platform.</p>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+          <li>Access the personal data we hold about you</li>
+          <li>Request correction of inaccurate data</li>
+          <li>Request deletion of your account and associated data</li>
+          <li>Withdraw consent for location access at any time via browser settings</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <div class="doc-section">
+        <h2>Security</h2>
+        <p>We take reasonable steps to protect your data, including encrypted transmission (HTTPS) and hashed password storage. However, no system is completely secure. Please use a strong, unique password for your account.</p>
+      </div>
+
+      <div class="contact-box">
+        <p>Privacy concerns or data requests?</p>
+        <a href="mailto:wastewatchers@kalinga.edu.in">wastewatchers@kalinga.edu.in</a>
+        <p style="margin-top:0.5rem; font-size:0.75rem;">We aim to respond within 5 working days.</p>
+      </div>
+
+    </div>
+    <!-- /panel-privacy -->
+
+  </div>
+
+  <script>
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + name).classList.add('active');
+    }
+
+function syncNavbarPoints(){
+
+    const pts = localStorage.getItem("user_points");
+
+    if(!pts) return;
+
+    const nav = document.querySelector(".nav-points");
+
+    if(nav){
+        nav.textContent = pts + " pts";
+    }
+
+}
+
+syncNavbarPoints();
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>WasteWatchers — Snap · Scan · Save the Ozone</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles (1).css" />
+
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --ww-deep:   #0d2b1e;
+      --ww-mid:    #1a4731;
+      --ww-accent: #2d7a4f;
+      --ww-light:  #4caf7d;
+      --ww-glow:   #6fcf97;
+      --ww-muted:  #8aab97;
+    }
+
+    /* ══════════════════════════════════════
+       MODAL OVERLAY
+    ══════════════════════════════════════ */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 18, 10, 0.78);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: rgba(13, 28, 20, 0.90);
+      border: 1px solid rgba(77, 175, 125, 0.25);
+      border-radius: 22px;
+      padding: 2.2rem 2.2rem 1.8rem;
+      width: min(430px, 100%);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6),
+                  0 0 0 1px rgba(111,207,151,0.07) inset;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      position: relative;
+      animation: wwRise .42s cubic-bezier(.22,1,.36,1) both;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    @keyframes wwRise {
+      from { opacity: 0; transform: translateY(28px) scale(.97); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* close button */
+    .modal-close {
+      position: absolute; right: 1rem; top: .9rem;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid rgba(77,175,125,.3);
+      background: rgba(255,255,255,.05);
+      color: var(--ww-muted); font-size: 1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; line-height: 1;
+    }
+    .modal-close:hover { background: rgba(77,175,125,.18); color: #fff; }
+
+    /* logo row */
+    .modal-logo {
+      display: flex; align-items: center; gap: .65rem;
+      margin-bottom: 1.3rem;
+    }
+    .modal-logo-icon {
+      width: 42px; height: 42px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--ww-accent), var(--ww-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem;
+    }
+    .modal-logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; color: #fff; letter-spacing: .02em;
+    }
+
+    /* tabs */
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(77,175,125,.2);
+      margin-bottom: 1.6rem;
+    }
+    .modal-tab {
+      flex: 1; padding: .58rem 0;
+      background: none; border: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: .88rem; font-weight: 500;
+      color: var(--ww-muted); cursor: pointer;
+      position: relative; transition: color .2s;
+    }
+    .modal-tab::after {
+      content: ''; position: absolute; bottom: -1px; left: 10%; right: 10%;
+      height: 2px; border-radius: 2px;
+      background: var(--ww-light);
+      transform: scaleX(0); transition: transform .25s;
+    }
+    .modal-tab.active { color: var(--ww-glow); }
+    .modal-tab.active::after { transform: scaleX(1); }
+
+    /* panels */
+    .modal-panel { display: none; }
+    .modal-panel.active {
+      display: block;
+      animation: wwFade .3s ease;
+    }
+    @keyframes wwFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .modal-panel h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.45rem; color: #fff;
+      margin-bottom: .25rem; font-weight: 700;
+    }
+    .modal-sub {
+      font-size: .78rem; color: var(--ww-muted);
+      margin-bottom: 1.4rem;
+    }
+
+    /* fields */
+    .ww-field { margin-bottom: 1rem; }
+    .ww-field label {
+      display: block; font-size: .72rem; font-weight: 600;
+      color: var(--ww-muted); text-transform: uppercase;
+      letter-spacing: .08em; margin-bottom: .38rem;
+    }
+    .ww-field-wrap { position: relative; }
+    .ww-field-wrap .ww-icon {
+      position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
+      font-size: .95rem; pointer-events: none; color: var(--ww-accent);
+    }
+    .ww-field input {
+      width: 100%;
+      padding: .72rem .85rem .72rem 2.4rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(77,175,125,.2);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Poppins', sans-serif; font-size: .88rem;
+      outline: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+    .ww-field input::placeholder { color: rgba(138,171,151,.45); }
+    .ww-field input:focus {
+      border-color: var(--ww-light);
+      background: rgba(77,175,125,.08);
+      box-shadow: 0 0 0 3px rgba(77,175,125,.12);
+    }
+
+    /* password toggle */
+    .ww-toggle-pw {
+      position: absolute; right: .85rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--ww-muted); font-size: .88rem; transition: color .2s;
+    }
+    .ww-toggle-pw:hover { color: var(--ww-light); }
+
+    /* forgot link */
+    .ww-forgot {
+      display: block; text-align: right;
+      font-size: .75rem; color: var(--ww-glow);
+      text-decoration: none; margin-top: -.35rem; margin-bottom: 1.3rem;
+    }
+    .ww-forgot:hover { opacity: .75; }
+
+    /* primary buttons */
+    .btn-login, .btn-register {
+      width: 100%; padding: .82rem;
+      background: linear-gradient(135deg, var(--ww-accent), var(--ww-light));
+      border: none; border-radius: 12px;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: .92rem; font-weight: 600;
+      cursor: pointer; letter-spacing: .03em;
+      box-shadow: 0 4px 20px rgba(45,122,79,.4);
+      transition: transform .18s, box-shadow .18s, filter .18s;
+    }
+    .btn-login:hover, .btn-register:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(45,122,79,.5);
+      filter: brightness(1.06);
+    }
+    .btn-login:active, .btn-register:active { transform: translateY(0); }
+
+    /* divider */
+    .ww-divider {
+      display: flex; align-items: center; gap: .7rem;
+      margin: 1.1rem 0; color: rgba(138,171,151,.4); font-size: .73rem;
+    }
+    .ww-divider::before, .ww-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(77,175,125,.15);
+    }
+
+    /* google button */
+    .btn-google-ww {
+      width: 100%; padding: .72rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(77,175,125,.2);
+      border-radius: 12px;
+      color: #e8e8e8;
+      font-family: 'Poppins', sans-serif;
+      font-size: .85rem; font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: .55rem;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-google-ww:hover {
+      background: rgba(255,255,255,.09);
+      border-color: rgba(77,175,125,.4);
+    }
+
+    /* college select dropdown */
+    .ww-field select {
+      width: 100%;
+      padding: .72rem .85rem .72rem 2.4rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(77,175,125,.2);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Poppins', sans-serif; font-size: .88rem;
+      outline: none;
+      appearance: none; -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+    .ww-field select:focus {
+      border-color: var(--ww-light);
+      background: rgba(77,175,125,.08);
+      box-shadow: 0 0 0 3px rgba(77,175,125,.12);
+    }
+    .ww-field select option {
+      background: #0d2b1e; color: #fff;
+    }
+    .ww-field select.placeholder-selected { color: rgba(138,171,151,.45); }
+    /* chevron arrow */
+    .ww-select-wrap { position: relative; }
+    .ww-select-wrap .ww-icon { pointer-events: none; z-index: 1; }
+    .ww-select-arrow {
+      position: absolute; right: .9rem; top: 50%; transform: translateY(-50%);
+      pointer-events: none; color: var(--ww-accent); font-size: .75rem;
+    }
+    .ww-switch {
+      text-align: center; margin-top: 1.1rem;
+      font-size: .78rem; color: var(--ww-muted);
+    }
+    .ww-switch a { color: var(--ww-glow); text-decoration: none; font-weight: 600; }
+    .ww-switch a:hover { text-decoration: underline; }
+
+    /* terms */
+    .ww-terms {
+      text-align: center; font-size: .7rem;
+      color: rgba(138,171,151,.5); margin-top: .8rem; line-height: 1.5;
+    }
+    .ww-terms a { color: var(--ww-glow); text-decoration: none; }
+
+    /* ══════════════════════════════════════
+       WELCOME PIGGY POPUP (unchanged)
+    ══════════════════════════════════════ */
+    .welcome-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+    }
+    .welcome-content {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .welcome-content img {
+      max-width: 100%;
+      border-radius: 20px;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 480px) {
+      .modal-content {
+        padding: 1.7rem 1.3rem 1.4rem;
+        border-radius: 16px;
+      }
+      .modal-panel h2 { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Background video ── -->
+  <video id="bgVideo" class="bg-video" autoplay muted loop playsinline poster="poster.jpg">
+    <source src="intro-bg.webm" type="video/webm">
+    <source src="intro-bg.mp4"  type="video/mp4">
+  </video>
+
+  <!-- ── Landing page overlay ── -->
+  <div class="overlay">
+    <div class="topbar">
+      <a href="camera.html" class="topbtn">Snap Waste</a>
+      <div class="topitem">Save Ozone</div>
+      <a href="dashboard.html" class="topbtn">Earn Eco-Points</a>
+      <div class="topitem">Build a Greener Future</div>
+    </div>
+
+    <div class="hero">
+      <div class="smallheading">An AI Initiative for World Ozone Day 2025</div>
+      <h1 class="title">WasteWatchers</h1>
+      <p class="subtitle">Turn everyday waste into awareness, action, and rewards — for you and the planet.</p>
+      <div class="cta-row">
+        <a class="cta" id="enterBtn" href="#">Start Your Journey ♻️</a>
+        <a class="ghost" href="about.html">About Us</a>
+      </div>
+    </div>
+
+    <a href="home.html" class="sr-only">Skip intro and open site</a>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       AUTH MODAL  (opens on "Start Your Journey")
+  ══════════════════════════════════════ -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+
+      <button class="modal-close" id="modalCloseBtn">✕</button>
+
+      <!-- Logo -->
+      <div class="modal-logo">
+        <div class="modal-logo-icon">♻️</div>
+        <span class="modal-logo-name">WasteWatchers</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="wwTab('login', this)">Sign In</button>
+        <button class="modal-tab"        onclick="wwTab('register', this)">Create Account</button>
+      </div>
+
+      <!-- ── LOGIN PANEL ── -->
+      <div class="modal-panel active" id="ww-login">
+        <h2>Welcome back 🌿</h2>
+        <p class="modal-sub">Continue your sustainability journey</p>
+
+        <form id="loginForm" onsubmit="return wwLogin(event)">
+          <div class="ww-field">
+            <label>Username</label>
+            <div class="ww-field-wrap">
+              <span class="ww-icon">👤</span>
+              <input type="text" id="username" placeholder="your_username"
+                     autocomplete="username" required />
+            </div>
+          </div>
+
+          <div class="ww-field">
+            <label>Password</label>
+            <div class="ww-field-wrap">
+              <span class="ww-icon">🔒</span>
+              <input type="password" id="password" placeholder="••••••••"
+                     autocomplete="current-password" required />
+              <button type="button" class="ww-toggle-pw"
+                      onclick="wwTogglePw('password', this)">👁</button>
+            </div>
+          </div>
+
+          <a href="#" class="ww-forgot">Forgot password?</a>
+          <button type="submit" class="btn-login">Log In &nbsp;→</button>
+        </form>
+
+        <div class="ww-divider">or</div>
+        <button class="btn-google-ww" type="button">
+          <svg width="17" height="17" viewBox="0 0 18 18">
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <p class="ww-switch">
+          New here? <a href="#" onclick="wwTabByName('register')">Create an account</a>
+        </p>
+      </div>
+
+      <!-- ── REGISTER PANEL ── -->
+      <div class="modal-panel" id="ww-register">
+        <h2>Join WasteWatchers 🌍</h2>
+        <p class="modal-sub">Start earning eco-points today</p>
+
+        <form id="registerForm" onsubmit="return wwRegister(event)">
+          <div class="ww-field">
+            <label>Username</label>
+            <div class="ww-field-wrap">
+              <span class="ww-icon">👤</span>
+              <input type="text" id="reg-username" placeholder="choose_a_username"
+                     autocomplete="username" required />
+            </div>
+          </div>
+
+          <div class="ww-field">
+            <label>Email</label>
+            <div class="ww-field-wrap">
+              <span class="ww-icon">📧</span>
+              <input type="email" id="reg-email" placeholder="you@email.com"
+                     autocomplete="email" required />
+            </div>
+          </div>
+
+          <div class="ww-field">
+            <label>College / University</label>
+            <div class="ww-field-wrap ww-select-wrap">
+              <span class="ww-icon">🎓</span>
+              <select id="reg-college" required
+                      class="placeholder-selected"
+                      onchange="this.classList.remove('placeholder-selected')">
+                <option value="" disabled selected>Select your college</option>
+                <option value="kalinga">Kalinga University, Raipur</option>
+              </select>
+              <span class="ww-select-arrow">&#9660;</span>
+            </div>
+          </div>
+
+          <div class="ww-field">
+            <label>Password</label>
+            <div class="ww-field-wrap">
+              <span class="ww-icon">🔒</span>
+              <input type="password" id="reg-password" placeholder="min. 8 characters"
+                     autocomplete="new-password" required />
+              <button type="button" class="ww-toggle-pw"
+                      onclick="wwTogglePw('reg-password', this)">👁</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-register">Create Account &nbsp;🌱</button>
+        </form>
+
+        <p class="ww-terms">
+          By signing up you agree to our <a href="terms.html">Terms</a> &amp; <a href="terms.html">Privacy Policy</a>
+        </p>
+        <p class="ww-switch" style="margin-top:.7rem">
+          Already have an account? <a href="#" onclick="wwTabByName('login')">Sign in</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════ -->
+  <script src="auth.js"></script>
+  <script>
+    const loginModal   = document.getElementById("loginModal");
+    const enterBtn     = document.getElementById("enterBtn");
+
+    /* Open modal on "Start Your Journey" */
+    enterBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      loginModal.style.display = "flex";
+    });
+
+    /* Close via ✕ button */
+    document.getElementById("modalCloseBtn").addEventListener("click", () => {
+      loginModal.style.display = "none";
+    });
+
+    /* Close by clicking outside the card */
+    loginModal.addEventListener("click", (e) => {
+      if (e.target === loginModal) loginModal.style.display = "none";
+    });
+
+    /* ── Tab switching ── */
+    function wwTab(name, btn) {
+      document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.modal-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('ww-' + name).classList.add('active');
+    }
+    function wwTabByName(name) {
+      const btn = document.querySelectorAll('.modal-tab')[name === 'login' ? 0 : 1];
+      wwTab(name, btn);
+      return false;
+    }
+
+    /* ── Show / hide password ── */
+    function wwTogglePw(id, btn) {
+      const inp = document.getElementById(id);
+      if (inp.type === 'password') { inp.type = 'text';     btn.textContent = '🙈'; }
+      else                         { inp.type = 'password'; btn.textContent = '👁'; }
+    }
+
+    /* ── Login submit ── */
+    function wwLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value;
+
+      // ✅ When backend is ready, replace below with:
+      // fetch('/api/login', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ username: user, password: pass })
+      // }).then(r => r.json()).then(data => {
+      //   if (data.success) {
+      //     WW.saveToken(data.token);       // ← save JWT
+      //     WW.saveUser(data.user);         // ← cache user data
+      //     window.location.href = 'camera.html';
+      //   } else { alert(data.message); }
+      // });
+
+      // TEMP: remove this block when backend is ready
+      WW.saveToken('demo_token_replace_with_real_jwt');
+      WW.saveUser({ username: user, points: 0, level: 1 });
+      loginModal.style.display = "none";
+      window.location.href = "camera.html";
+      return false;
+    }
+
+    /* ── Register submit ── */
+    function wwRegister(e) {
+      e.preventDefault();
+      const user    = document.getElementById('reg-username').value.trim();
+      const email   = document.getElementById('reg-email').value.trim();
+      const college = document.getElementById('reg-college').value;
+      const pass    = document.getElementById('reg-password').value;
+
+      if (!college) {
+        alert('Please select your college.');
+        return false;
+      }
+      if (pass.length < 8) {
+        alert('Password must be at least 8 characters.');
+        return false;
+      }
+
+      // ✅ When backend is ready, replace below with:
+      // fetch('/api/register', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ username: user, email, college, password: pass })
+      // }).then(r => r.json()).then(data => {
+      //   if (data.success) {
+      //     WW.saveToken(data.token);       // ← save JWT
+      //     WW.saveUser(data.user);         // ← cache user data
+      //     window.location.href = 'camera.html';
+      //   } else { alert(data.message); }
+      // });
+
+      // TEMP: remove this block when backend is ready
+      alert('Account created! You can now sign in. ✅');
+      wwTabByName('login');
+      return false;
+    }
+function syncNavbarPoints(){
+
+    const pts = localStorage.getItem("user_points");
+
+    if(!pts) return;
+
+    const nav = document.querySelector(".nav-points");
+
+    if(nav){
+        nav.textContent = pts + " pts";
+    }
+
+}
+
+syncNavbarPoints();
+
+  </script>
+
+</body>
+</html>

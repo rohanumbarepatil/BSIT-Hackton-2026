@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WasteWatchers | Splash</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #07121a;
+      overflow: hidden;
+    }
+
+    .logo img {
+      width: 300px; /* tum size change kar sakti ho */
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeZoom 3s ease forwards;
+    }
+
+    @keyframes fadeZoom {
+      0% { opacity: 0; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+      80% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0; transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="logo.png" alt="WasteWatchers Logo">
+  </div>
+
+  <script>
+    // Redirect after animation
+    setTimeout(() => {
+      window.location.href = "intro.html"; // tumhara landing page
+    }, 3000); // 3 sec
+  </script>
+</body>
+</html>

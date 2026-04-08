@@ -1,0 +1,979 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — Rewards Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a1f14;
+      --bg-card:     #0f2a1a;
+      --bg-raised:   #152f1e;
+      --border:      #1f4a2e;
+      --border-lit:  #2d7a4f;
+      --green:       #2d7a4f;
+      --green-mid:   #3a9460;
+      --green-light: #4caf7d;
+      --green-pale:  #c8ead8;
+      --text:        #e8f0eb;
+      --text-muted:  #7a9e87;
+      --gold:        #c9952a;
+      --gold-light:  #e8b84b;
+      --red:         #c0392b;
+      --canteen:     #3a7a4f;
+      --swiggy:      #7a3a1a;
+      --amazon:      #7a6a1a;
+      --campus:      #1a4a6a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -45deg, transparent, transparent 40px,
+        rgba(45,122,79,0.018) 40px, rgba(45,122,79,0.018) 41px
+      );
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════
+       NAVBAR
+    ════════════════════════════ */
+    .topbar {
+      position: static;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem; color: var(--text);
+      text-decoration: none; letter-spacing: 0.01em;
+    }
+    .nav-right {
+      display: flex; align-items: center; gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+    .nav-points {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.78rem; color: var(--green-light);
+      font-weight: 600; letter-spacing: 0.03em;
+    }
+    .nav-btn {
+      padding: 0.38rem 1rem;
+      border: 1px solid var(--border-lit);
+      border-radius: 999px;
+      color: var(--text); font-size: 0.82rem; font-weight: 500;
+      text-decoration: none; background: transparent;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover { background: var(--green); border-color: var(--green); color: #fff; }
+    .nav-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+    /* ════════════════════════════
+       PAGE WRAP
+    ════════════════════════════ */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
+    }
+
+    .rule {
+      width: 48px; height: 3px;
+      background: var(--green-light);
+      border-radius: 2px; margin-bottom: 1rem;
+    }
+    .page-header { margin-bottom: 2rem; }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 5vw, 2.6rem);
+      font-weight: 900; line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+    .page-header p {
+      font-size: 0.92rem; color: var(--text-muted);
+      max-width: 500px; line-height: 1.6;
+    }
+
+    /* ════════════════════════════
+       BALANCE BAR
+    ════════════════════════════ */
+    .balance-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem 1.6rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .balance-left { display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+    .balance-item { display: flex; flex-direction: column; gap: 0.15rem; }
+    .balance-label {
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .balance-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem; font-weight: 900;
+      color: var(--green-light); line-height: 1;
+    }
+    .balance-divider {
+      width: 1px; height: 40px;
+      background: var(--border);
+    }
+    .balance-note {
+      font-size: 0.76rem; color: var(--text-muted);
+    }
+    .balance-right {
+      font-size: 0.8rem; color: var(--text-muted);
+      text-align: right; line-height: 1.5;
+    }
+
+    /* ════════════════════════════
+       FILTER TABS
+    ════════════════════════════ */
+    .filter-row {
+      display: flex; gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .filter-btn {
+      padding: 0.38rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover { border-color: var(--border-lit); color: var(--text); }
+    .filter-btn.active {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    /* section label */
+    .sec-label {
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 1rem;
+    }
+
+    /* ════════════════════════════
+       REWARDS GRID
+    ════════════════════════════ */
+    .rewards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .reward-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+      display: flex; flex-direction: column;
+    }
+    .reward-card:hover {
+      border-color: var(--border-lit);
+      transform: translateY(-2px);
+    }
+    .reward-card.locked-card {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    /* coloured top strip per brand */
+    .reward-strip {
+      height: 5px;
+    }
+
+    .reward-body { padding: 1.3rem 1.3rem 1rem; flex: 1; }
+
+    .reward-brand-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+    }
+    .reward-brand {
+      font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+    .reward-tag {
+      font-size: 0.65rem; font-weight: 700;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .tag-popular { background: rgba(45,122,79,0.2); color: var(--green-light); }
+    .tag-limited { background: rgba(192,57,43,0.2); color: #e74c3c; }
+    .tag-new     { background: rgba(201,149,42,0.2); color: var(--gold-light); }
+
+    .reward-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.35rem;
+      line-height: 1.2;
+    }
+    .reward-desc {
+      font-size: 0.8rem; color: var(--text-muted);
+      line-height: 1.5; margin-bottom: 1rem;
+    }
+
+    /* expiry */
+    .reward-expiry {
+      font-size: 0.7rem; color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .reward-expiry span { color: var(--text); font-weight: 500; }
+
+    /* cost row */
+    .reward-cost-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.3rem;
+      border-top: 1px solid var(--border);
+    }
+    .reward-cost {
+      display: flex; flex-direction: column; gap: 0.1rem;
+    }
+    .cost-pts {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 900;
+      color: var(--green-light); line-height: 1;
+    }
+    .cost-label {
+      font-size: 0.65rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.07em;
+    }
+
+    .btn-redeem {
+      padding: 0.6rem 1.2rem;
+      background: var(--green);
+      border: none; border-radius: 9px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.83rem; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.02em;
+      transition: filter 0.2s, transform 0.15s;
+    }
+    .btn-redeem:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-redeem:active { transform: translateY(0); }
+    .btn-redeem.cant-afford {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      filter: none; transform: none;
+    }
+
+    /* locked overlay label */
+    .locked-label {
+      font-size: 0.72rem; color: var(--text-muted);
+      font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ════════════════════════════
+       HISTORY SECTION
+    ════════════════════════════ */
+    .history-section { margin-top: 1rem; }
+
+    .history-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .history-header {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-header h3 {
+      font-size: 0.88rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    .history-row {
+      display: flex; align-items: center;
+      padding: 0.85rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .history-row:last-child { border-bottom: none; }
+
+    .history-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .history-info { flex: 1; }
+    .history-name {
+      font-size: 0.88rem; font-weight: 500; color: var(--text);
+    }
+    .history-date { font-size: 0.72rem; color: var(--text-muted); }
+    .history-pts {
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--red);
+    }
+    .history-status {
+      font-size: 0.68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+    }
+    .status-used { background: rgba(31,74,46,0.4); color: var(--text-muted); }
+    .status-active { background: rgba(45,122,79,0.2); color: var(--green-light); }
+
+    /* empty history */
+    .history-empty {
+      padding: 2rem; text-align: center;
+      font-size: 0.85rem; color: var(--text-muted);
+    }
+
+    /* ════════════════════════════
+       REDEEM MODAL
+    ════════════════════════════ */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(5,15,10,0.82);
+      z-index: 100;
+      align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-lit);
+      border-radius: 20px;
+      width: min(420px, 100%);
+      padding: 2rem;
+      animation: modalUp 0.35s cubic-bezier(.22,1,.36,1);
+    }
+    @keyframes modalUp {
+      from { opacity: 0; transform: translateY(24px) scale(.97); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .modal-close {
+      float: right;
+      background: none; border: none;
+      color: var(--text-muted); font-size: 1.1rem;
+      cursor: pointer; transition: color 0.2s;
+      margin-top: -0.3rem;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--text); margin-bottom: 0.3rem;
+      clear: both;
+    }
+    .modal-sub {
+      font-size: 0.82rem; color: var(--text-muted);
+      margin-bottom: 1.5rem; line-height: 1.5;
+    }
+
+    .modal-detail-row {
+      display: flex; justify-content: space-between;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .modal-detail-row:last-of-type { border-bottom: none; }
+    .modal-detail-label { color: var(--text-muted); }
+    .modal-detail-value { color: var(--text); font-weight: 500; }
+    .modal-detail-value.deduct { color: var(--red); font-weight: 700; }
+    .modal-detail-value.remain { color: var(--green-light); font-weight: 700; }
+
+    .modal-actions {
+      display: flex; gap: 0.75rem; margin-top: 1.5rem;
+    }
+    .btn-cancel {
+      flex: 1; padding: 0.75rem;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-cancel:hover { border-color: var(--border-lit); color: var(--text); }
+
+    .btn-confirm-redeem {
+      flex: 2; padding: 0.75rem;
+      background: var(--green);
+      border: none; border-radius: 10px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: filter 0.2s;
+    }
+    .btn-confirm-redeem:hover { filter: brightness(1.1); }
+
+    /* success state */
+    .modal-success {
+      display: none;
+      text-align: center; padding: 1rem 0;
+    }
+    .modal-success.show { display: block; }
+    .success-code {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900;
+      color: var(--green-light);
+      letter-spacing: 0.15em;
+      background: var(--bg-raised);
+      border: 1px dashed var(--border-lit);
+      border-radius: 10px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .success-note {
+      font-size: 0.78rem; color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ════════════════════════════
+       RESPONSIVE
+    ════════════════════════════ */
+    @media (max-width: 640px) {
+      .topbar { padding: 0.9rem 1rem; }
+      .page-wrap { padding: 1.5rem 1rem 4rem; }
+      .rewards-grid { grid-template-columns: 1fr; }
+      .balance-divider { display: none; }
+      .balance-bar { padding: 1rem; }
+    }
+
+    /* entrance animation */
+    .fade-up {
+      opacity: 0; transform: translateY(16px);
+      animation: fadeUp 0.45s ease forwards;
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: none; }
+    }
+    .fade-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-up:nth-child(2) { animation-delay: 0.1s; }
+    .fade-up:nth-child(3) { animation-delay: 0.15s; }
+    .fade-up:nth-child(4) { animation-delay: 0.2s; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-right">
+      <div class="nav-points" id="navPoints">240 pts</div>
+      <a href="camera.html" class="nav-btn">Snap Waste</a>
+      <a href="dashboard.html" class="nav-btn">Dashboard</a>
+      <a href="rewards.html" class="nav-btn active">Rewards</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header fade-up">
+      <div class="rule"></div>
+      <h1>Rewards Store</h1>
+      <p>Spend your eco-points on real rewards. Every item you dispose of correctly brings you closer to a voucher.</p>
+    </div>
+
+    <!-- Balance Bar -->
+    <div class="balance-bar fade-up">
+      <div class="balance-left">
+        <div class="balance-item">
+          <div class="balance-label">Available Points</div>
+          <div class="balance-value" id="availablePoints">240</div>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <div class="balance-label">Points Spent</div>
+          <div class="balance-value" style="color:var(--text-muted); font-size:1.3rem;" id="spentPoints">0</div>
+        </div>
+        <div class="balance-divider"></div>
+        <div class="balance-item">
+          <div class="balance-label">Vouchers Claimed</div>
+          <div class="balance-value" style="color:var(--text-muted); font-size:1.3rem;" id="voucherCount">0</div>
+        </div>
+      </div>
+      <div class="balance-right">
+        Earn more points by<br>scanning waste on the<br>
+        <a href="camera.html" style="color:var(--green-light); text-decoration:none; font-weight:600;">Snap Waste</a> page
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-row fade-up">
+      <button class="filter-btn active" onclick="filterRewards('all', this)">All Rewards</button>
+      <button class="filter-btn" onclick="filterRewards('canteen', this)">Canteen</button>
+      <button class="filter-btn" onclick="filterRewards('food', this)">Food Delivery</button>
+      <button class="filter-btn" onclick="filterRewards('shopping', this)">Shopping</button>
+      <button class="filter-btn" onclick="filterRewards('campus', this)">Campus</button>
+    </div>
+
+    <!-- Rewards Grid -->
+    <div class="sec-label">Available Vouchers</div>
+    <div class="rewards-grid" id="rewardsGrid">
+
+      <!-- Canteen -->
+      <div class="reward-card fade-up" data-category="canteen" data-cost="1500" data-name="20% Meal Discount" data-brand="Campus Canteen" data-desc="Get 20% off your next meal at the main campus canteen. Valid on any order above 50 rupees.">
+        <div class="reward-strip" style="background:#3a7a4f;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Campus Canteen</div>
+            <div class="reward-tag tag-popular">Popular</div>
+          </div>
+          <div class="reward-name">20% Meal Discount</div>
+          <div class="reward-desc">Get 20% off your next meal at the main campus canteen. Valid on any order above 50 rupees.</div>
+          <div class="reward-expiry">Valid for <span>7 days</span> after redemption &nbsp;&middot;&nbsp; ~15 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">1,500 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 1,500 pts</button>
+        </div>
+      </div>
+
+      <div class="reward-card fade-up" data-category="canteen" data-cost="2500" data-name="Free Beverage Voucher" data-brand="Campus Canteen" data-desc="One free cold or hot beverage of your choice at the canteen counter. No minimum order required.">
+        <div class="reward-strip" style="background:#3a7a4f;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Campus Canteen</div>
+            <div class="reward-tag tag-limited">Limited</div>
+          </div>
+          <div class="reward-name">Free Beverage</div>
+          <div class="reward-desc">One free cold or hot beverage of your choice at the canteen counter. No minimum order required.</div>
+          <div class="reward-expiry">Valid for <span>3 days</span> after redemption &nbsp;&middot;&nbsp; ~25 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">2,500 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 2,500 pts</button>
+        </div>
+      </div>
+
+      <!-- Swiggy -->
+      <div class="reward-card fade-up" data-category="food" data-cost="2000" data-name="Swiggy Discount Coupon" data-brand="Swiggy" data-desc="Flat 60 rupees off on your next Swiggy order. Minimum order value 199 rupees. One use per account.">
+        <div class="reward-strip" style="background:#c05a1a;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Swiggy</div>
+            <div class="reward-tag tag-popular">Popular</div>
+          </div>
+          <div class="reward-name">Rs. 60 Off Order</div>
+          <div class="reward-desc">Flat 60 rupees off on your next Swiggy order. Minimum order value 199 rupees. One use per account.</div>
+          <div class="reward-expiry">Valid for <span>14 days</span> after redemption &nbsp;&middot;&nbsp; ~20 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">2,000 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 2,000 pts</button>
+        </div>
+      </div>
+
+      <div class="reward-card fade-up" data-category="food" data-cost="3000" data-name="Swiggy Instamart Voucher" data-brand="Swiggy Instamart" data-desc="Rs. 100 off on groceries via Swiggy Instamart. Minimum cart value 399 rupees.">
+        <div class="reward-strip" style="background:#c05a1a;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Swiggy Instamart</div>
+            <div class="reward-tag tag-new">New</div>
+          </div>
+          <div class="reward-name">Rs. 100 Grocery Off</div>
+          <div class="reward-desc">Rs. 100 off on groceries via Swiggy Instamart. Minimum cart value 399 rupees.</div>
+          <div class="reward-expiry">Valid for <span>10 days</span> after redemption &nbsp;&middot;&nbsp; ~30 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">3,000 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 3,000 pts</button>
+        </div>
+      </div>
+
+      <!-- Amazon -->
+      <div class="reward-card fade-up" data-category="shopping" data-cost="2500" data-name="Amazon Gift Voucher" data-brand="Amazon India" data-desc="Rs. 75 Amazon gift voucher redeemable on any product. Added directly to your Amazon Pay balance.">
+        <div class="reward-strip" style="background:#b8860b;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Amazon India</div>
+            <div class="reward-tag tag-popular">Popular</div>
+          </div>
+          <div class="reward-name">Rs. 75 Gift Voucher</div>
+          <div class="reward-desc">Rs. 75 Amazon gift voucher redeemable on any product. Added directly to your Amazon Pay balance.</div>
+          <div class="reward-expiry">Valid for <span>30 days</span> after redemption &nbsp;&middot;&nbsp; ~25 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">2,500 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 2,500 pts</button>
+        </div>
+      </div>
+
+      <div class="reward-card fade-up" data-category="shopping" data-cost="4500" data-name="Amazon Rs. 150 Voucher" data-brand="Amazon India" data-desc="Rs. 150 Amazon gift voucher for electronics, books, or anything you need. No minimum order.">
+        <div class="reward-strip" style="background:#b8860b;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Amazon India</div>
+            <div class="reward-tag tag-limited">Limited</div>
+          </div>
+          <div class="reward-name">Rs. 150 Gift Voucher</div>
+          <div class="reward-desc">Rs. 150 Amazon gift voucher for electronics, books, or anything you need. No minimum order.</div>
+          <div class="reward-expiry">Valid for <span>30 days</span> after redemption &nbsp;&middot;&nbsp; ~45 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">4,500 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 4,500 pts</button>
+        </div>
+      </div>
+
+      <!-- Campus -->
+      <div class="reward-card fade-up" data-category="campus" data-cost="800" data-name="Library Priority Pass" data-brand="Campus Rewards" data-desc="Priority access to the campus library study room for one full day. Book your slot at the front desk.">
+        <div class="reward-strip" style="background:#1a5a8a;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Campus Rewards</div>
+            <div class="reward-tag tag-new">New</div>
+          </div>
+          <div class="reward-name">Library Priority Pass</div>
+          <div class="reward-desc">Priority access to the campus library study room for one full day. Book your slot at the front desk.</div>
+          <div class="reward-expiry">Valid for <span>5 days</span> after redemption &nbsp;&middot;&nbsp; ~8 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">800 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 800 pts</button>
+        </div>
+      </div>
+
+      <div class="reward-card fade-up" data-category="campus" data-cost="1200" data-name="Free Stationery Pack" data-brand="Campus Store" data-desc="Redeem a free stationery pack (pens, highlighters, sticky notes) from the campus store counter.">
+        <div class="reward-strip" style="background:#1a5a8a;"></div>
+        <div class="reward-body">
+          <div class="reward-brand-row">
+            <div class="reward-brand">Campus Store</div>
+            <div class="reward-tag tag-popular">Popular</div>
+          </div>
+          <div class="reward-name">Free Stationery Pack</div>
+          <div class="reward-desc">Redeem a free stationery pack (pens, highlighters, sticky notes) from the campus store counter.</div>
+          <div class="reward-expiry">Valid for <span>7 days</span> after redemption &nbsp;&middot;&nbsp; ~12 items</div>
+        </div>
+        <div class="reward-cost-row">
+          <div class="reward-cost">
+            <div class="cost-pts">1,200 pts</div>
+            <div class="cost-label">required</div>
+          </div>
+          <button class="btn-redeem cant-afford" onclick="openModal(this)">Need 1,200 pts</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Redemption History -->
+    <div class="history-section fade-up">
+      <div class="sec-label">Redemption History</div>
+      <div class="history-card">
+        <div class="history-header">
+          <h3>Your Claimed Vouchers</h3>
+        </div>
+        <div id="historyList">
+          <div class="history-empty" id="historyEmpty">
+            No vouchers claimed yet. Redeem your first reward above.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════
+       REDEEM CONFIRMATION MODAL
+  ════════════════════════════ -->
+  <div class="modal-overlay" id="redeemModal">
+    <div class="modal-box">
+
+      <button class="modal-close" onclick="closeModal()">&#10005;</button>
+      <div class="modal-title" id="modalTitle">Confirm Redemption</div>
+      <div class="modal-sub" id="modalSub">You are about to redeem this reward.</div>
+
+      <!-- Confirm state -->
+      <div id="modalConfirmState">
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Reward</span>
+          <span class="modal-detail-value" id="modalRewardName">—</span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Brand</span>
+          <span class="modal-detail-value" id="modalBrand">—</span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Points Required</span>
+          <span class="modal-detail-value deduct" id="modalCost">—</span>
+        </div>
+        <div class="modal-detail-row">
+          <span class="modal-detail-label">Balance After</span>
+          <span class="modal-detail-value remain" id="modalRemaining">—</span>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button class="btn-confirm-redeem" onclick="confirmRedeem()">Confirm & Claim</button>
+        </div>
+      </div>
+
+      <!-- Success state -->
+      <div class="modal-success" id="modalSuccessState">
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Your voucher code</div>
+        <div class="success-code" id="successCode">WW-XXXX</div>
+        <div class="success-note">
+          Screenshot this code or note it down.<br>
+          Show it at the counter or enter it at checkout.<br><br>
+          <strong style="color:var(--text);">Points have been deducted from your balance.</strong>
+        </div>
+        <button class="btn-confirm-redeem" style="margin-top:1.2rem; width:100%;" onclick="closeModal()">Done</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <script>
+    let userPoints   = 2400;   // 100pts per item × ~24 items
+    let spentTotal   = 0;
+    let voucherTotal = 0;
+
+    // sync display on load
+    document.getElementById('availablePoints').textContent = userPoints.toLocaleString('en-IN');
+    document.getElementById('navPoints').textContent       = userPoints.toLocaleString('en-IN') + ' pts';
+
+    // current reward being redeemed
+    let pendingReward = null;
+
+    // ── Update afford state on load ──
+    function refreshAffordability() {
+      document.querySelectorAll('.reward-card').forEach(card => {
+        const cost = parseInt(card.dataset.cost);
+        const btn  = card.querySelector('.btn-redeem');
+        if (cost <= userPoints) {
+          btn.classList.remove('cant-afford');
+          btn.textContent = 'Redeem';
+        } else {
+          btn.classList.add('cant-afford');
+          btn.textContent = 'Need ' + cost.toLocaleString('en-IN') + ' pts';
+        }
+      });
+    }
+
+    refreshAffordability();
+
+    // ── Filter ──
+    function filterRewards(cat, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.reward-card').forEach(card => {
+        if (cat === 'all' || card.dataset.category === cat) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // ── Open modal ──
+    function openModal(btn) {
+      const card  = btn.closest('.reward-card');
+      const cost  = parseInt(card.dataset.cost);
+      const name  = card.dataset.name;
+      const brand = card.dataset.brand;
+
+      if (cost > userPoints) return;
+
+      pendingReward = { cost, name, brand, card };
+
+      document.getElementById('modalRewardName').textContent = name;
+      document.getElementById('modalBrand').textContent      = brand;
+      document.getElementById('modalCost').textContent       = '- ' + cost.toLocaleString('en-IN') + ' pts';
+      document.getElementById('modalRemaining').textContent  = (userPoints - cost).toLocaleString('en-IN') + ' pts';
+
+      document.getElementById('modalConfirmState').style.display = 'block';
+      document.getElementById('modalSuccessState').classList.remove('show');
+      document.getElementById('modalTitle').textContent = 'Confirm Redemption';
+      document.getElementById('modalSub').textContent   = 'Review your redemption details below.';
+
+      document.getElementById('redeemModal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('redeemModal').classList.remove('open');
+      pendingReward = null;
+    }
+
+    // close on backdrop click
+    document.getElementById('redeemModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('redeemModal')) closeModal();
+    });
+
+    // ── Confirm redeem ──
+    function confirmRedeem() {
+      if (!pendingReward) return;
+
+      const { cost, name, brand, card } = pendingReward;
+
+      // deduct points
+      userPoints  -= cost;
+      spentTotal  += cost;
+      voucherTotal += 1;
+
+      // update UI
+      document.getElementById('availablePoints').textContent = userPoints.toLocaleString('en-IN');
+      document.getElementById('navPoints').textContent       = userPoints.toLocaleString('en-IN') + ' pts';
+      document.getElementById('spentPoints').textContent     = spentTotal.toLocaleString('en-IN');
+      document.getElementById('voucherCount').textContent    = voucherTotal;
+
+      refreshAffordability();
+
+      // generate voucher code
+      const code = 'WW-' + Math.random().toString(36).substring(2,6).toUpperCase() + Math.floor(Math.random()*100);
+      document.getElementById('successCode').textContent = code;
+
+      // switch modal to success
+      document.getElementById('modalConfirmState').style.display = 'none';
+      document.getElementById('modalSuccessState').classList.add('show');
+      document.getElementById('modalTitle').textContent = 'Voucher Claimed!';
+      document.getElementById('modalSub').textContent   = 'Here is your unique code.';
+
+      // add to history
+      addHistory(name, brand, cost, code);
+    }
+
+    // ── Add to history ──
+    function addHistory(name, brand, cost, code) {
+      const empty = document.getElementById('historyEmpty');
+      if (empty) empty.remove();
+
+      const list = document.getElementById('historyList');
+      const today = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+
+      const brandColors = {
+        'Campus Canteen': '#3a7a4f',
+        'Campus Rewards': '#1a5a8a',
+        'Campus Store':   '#1a5a8a',
+        'Swiggy':         '#c05a1a',
+        'Swiggy Instamart':'#c05a1a',
+        'Amazon India':   '#b8860b',
+      };
+      const color = brandColors[brand] || '#4caf7d';
+
+      const row = document.createElement('div');
+      row.className = 'history-row';
+      row.innerHTML = `
+        <div class="history-dot" style="background:${color};"></div>
+        <div class="history-info">
+          <div class="history-name">${name}</div>
+          <div class="history-date">${brand} &middot; ${today} &middot; Code: <strong style="color:var(--green-light);">${code}</strong></div>
+        </div>
+        <div class="history-pts">-${cost.toLocaleString('en-IN')} pts</div>
+        <div class="history-status status-active">Active</div>`;
+      list.insertBefore(row, list.firstChild);
+    }
+
+  async function redeemReward(type){
+
+ const token = localStorage.getItem("token");
+
+ const res = await fetch("http://127.0.0.1:5000/api/redeem",{
+
+  method:"POST",
+
+  headers:{
+   "Content-Type":"application/json",
+   "Authorization":"Bearer "+token
+  },
+
+  body:JSON.stringify({
+   reward:type
+  })
+
+ });
+
+ const data = await res.json();
+
+ if(data.status==="success"){
+
+   alert("Voucher Code: "+data.voucher_code);
+
+ }else{
+
+   alert(data.message);
+
+ }
+
+}
+
+function syncNavbarPoints(){
+
+    const pts = localStorage.getItem("user_points");
+
+    if(!pts) return;
+
+    const nav = document.querySelector(".nav-points");
+
+    if(nav){
+        nav.textContent = pts + " pts";
+    }
+
+}
+
+syncNavbarPoints();
+
+  </script>
+
+</body>
+</html>

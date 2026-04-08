@@ -1,0 +1,1160 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — Snap Waste</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a1f14;
+      --bg-card:     #0f2a1a;
+      --bg-raised:   #152f1e;
+      --border:      #1f4a2e;
+      --border-lit:  #2d7a4f;
+      --green:       #2d7a4f;
+      --green-mid:   #3a9460;
+      --green-light: #4caf7d;
+      --green-pale:  #c8ead8;
+      --text:        #e8f0eb;
+      --text-muted:  #7a9e87;
+      --accent:      #4caf7d;
+      --danger:      #c0392b;
+      --warning:     #d4a017;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      /* subtle noise texture via SVG data URI */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* ── subtle diagonal line pattern overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 40px,
+        rgba(45, 122, 79, 0.018) 40px,
+        rgba(45, 122, 79, 0.018) 41px
+      );
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════
+       NAVBAR
+    ════════════════════════════ */
+    .topbar {
+      position: static;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+    }
+
+    /* user badge */
+    .nav-user {
+      display: flex; align-items: center; gap: 0.55rem;
+      font-size: 0.82rem; color: var(--text-muted);
+    }
+    .nav-points {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+      font-size: 0.78rem;
+      color: var(--green-light);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    /* ════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════ */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ── Page header ── */
+    .page-header {
+      margin-bottom: 2rem;
+    }
+    .page-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.9rem, 5vw, 2.6rem);
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 0.45rem;
+    }
+    .page-header p {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* thin green rule */
+    .rule {
+      width: 48px; height: 3px;
+      background: var(--green-light);
+      border-radius: 2px;
+      margin-bottom: 1rem;
+    }
+
+    /* ════════════════════════════
+       CAPTURE CARD
+    ════════════════════════════ */
+    .capture-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .capture-card-header {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1.1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .capture-card-header h2 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .step-badge {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ── Upload zone ── */
+    .upload-zone {
+      margin: 1.4rem;
+      border: 2px dashed var(--border-lit);
+      border-radius: 12px;
+      min-height: 240px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      background: var(--bg);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--green-light);
+      background: rgba(76, 175, 125, 0.04);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .upload-icon {
+      width: 52px; height: 52px;
+      border: 2px solid var(--border-lit);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .upload-icon svg { width: 26px; height: 26px; stroke: var(--green-light); fill: none; stroke-width: 1.8; }
+
+    .upload-zone h3 {
+      font-size: 1rem; font-weight: 600;
+      color: var(--text);
+    }
+    .upload-zone p {
+      font-size: 0.78rem; color: var(--text-muted);
+      text-align: center; line-height: 1.5;
+    }
+
+    /* preview image */
+    #previewImg {
+      display: none;
+      width: 100%; max-height: 320px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .upload-zone.has-image .upload-placeholder { display: none; }
+    .upload-zone.has-image #previewImg { display: block; }
+    .upload-zone.has-image { border-style: solid; border-color: var(--green); min-height: unset; padding: 0.8rem; }
+
+    /* ── Action buttons ── */
+    .capture-actions {
+      display: flex; gap: 0.75rem;
+      padding: 0 1.4rem 1.4rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.72rem 1.4rem;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: transform 0.15s, filter 0.15s, background 0.2s;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: var(--green);
+      color: #fff;
+      flex: 1;
+      justify-content: center;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-lit);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: var(--bg-raised); }
+    .btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+
+    /* ── Camera stream ── */
+    #cameraSection {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 0 1.4rem 1.4rem;
+    }
+    #cameraSection.visible { display: flex; }
+    #cameraStream {
+      width: 100%; border-radius: 10px;
+      background: #000;
+      max-height: 300px; object-fit: cover;
+    }
+    .camera-snap-row {
+      display: flex; gap: 0.75rem; width: 100%;
+    }
+
+    /* ════════════════════════════
+       ANALYSE BUTTON
+    ════════════════════════════ */
+    .analyse-wrap {
+      padding: 0 0 1.4rem;
+      display: none;
+    }
+    .analyse-wrap.visible { display: block; }
+
+    .btn-analyse {
+      width: 100%;
+      padding: 1rem;
+      background: var(--green);
+      color: #fff;
+      border: none; border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: filter 0.2s, transform 0.15s;
+      position: relative; overflow: hidden;
+    }
+    .btn-analyse::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent, transparent 6px,
+        rgba(255,255,255,0.04) 6px, rgba(255,255,255,0.04) 7px
+      );
+    }
+    .btn-analyse:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-analyse:disabled { filter: brightness(0.6); cursor: not-allowed; transform: none; }
+
+    /* ── Loading bar ── */
+    .loading-bar-wrap {
+      display: none;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .loading-bar-wrap.visible { display: block; }
+    .loading-bar {
+      height: 100%;
+      background: var(--green-light);
+      border-radius: 2px;
+      width: 0%;
+      animation: loadProgress 2.2s ease forwards;
+    }
+    @keyframes loadProgress {
+      0%   { width: 0%; }
+      60%  { width: 75%; }
+      90%  { width: 90%; }
+      100% { width: 100%; }
+    }
+
+    /* ════════════════════════════
+       RESULT SECTION
+    ════════════════════════════ */
+    #resultSection {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    #resultSection.visible { display: flex; animation: slideUp 0.45s cubic-bezier(.22,1,.36,1); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .result-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    .result-sub {
+      font-size: 0.8rem; color: var(--text-muted);
+    }
+
+    /* main result card */
+    .result-main {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .result-type-bar {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+
+    .waste-label {
+      display: flex; align-items: center; gap: 0.7rem;
+    }
+    .waste-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--green-light);
+      flex-shrink: 0;
+    }
+    .waste-dot.organic  { background: #5a9e3a; }
+    .waste-dot.plastic  { background: #3a7ec0; }
+    .waste-dot.paper    { background: #c0943a; }
+    .waste-dot.metal    { background: #9e9e9e; }
+    .waste-dot.hazardous{ background: var(--danger); }
+    .waste-dot.ewaste   { background: #8e44ad; }
+    .waste-dot.glass    { background: #48c9b0; }
+
+    .waste-name {
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--text);
+      font-family: 'Playfair Display', serif;
+    }
+    .waste-category {
+      font-size: 0.76rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.07em;
+    }
+
+    .confidence-pill {
+      background: var(--bg-raised);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.85rem;
+      font-size: 0.75rem; font-weight: 600;
+      color: var(--green-light);
+    }
+
+    /* result grid */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-cell {
+      padding: 1rem 1.4rem;
+    }
+    .result-cell:first-child { border-right: 1px solid var(--border); }
+    .result-cell-label {
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 0.3rem;
+    }
+    .result-cell-value {
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--green-light);
+      font-family: 'Playfair Display', serif;
+      line-height: 1;
+    }
+    .result-cell-unit {
+      font-size: 0.72rem; color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* disposal instruction */
+    .disposal-block {
+      padding: 1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .disposal-block h4 {
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 0.55rem;
+    }
+    .disposal-steps {
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .disposal-step {
+      display: flex; align-items: flex-start; gap: 0.65rem;
+      font-size: 0.85rem; color: var(--text); line-height: 1.45;
+    }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-lit);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: var(--green-light);
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* nearest bin row */
+    .bin-row {
+      padding: 1rem 1.4rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.75rem;
+    }
+    .bin-info { display: flex; flex-direction: column; gap: 0.2rem; }
+    .bin-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .bin-dist { font-size: 0.76rem; color: var(--text-muted); }
+    .btn-map {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-lit);
+      border-radius: 8px;
+      color: var(--green-light);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem; font-weight: 600;
+      padding: 0.45rem 1rem;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn-map:hover { background: var(--green); color: #fff; border-color: var(--green); }
+
+    /* ── Points earned toast ── */
+    .points-toast {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-lit);
+      border-left: 4px solid var(--green-light);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem;
+    }
+    .points-toast-left { display: flex; flex-direction: column; gap: 0.15rem; }
+    .points-toast-title {
+      font-size: 0.78rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em;
+    }
+    .points-toast-val {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem; font-weight: 900;
+      color: var(--green-light); line-height: 1;
+    }
+    .points-toast-sub { font-size: 0.74rem; color: var(--text-muted); }
+    .btn-confirm {
+      background: var(--green);
+      border: none; border-radius: 9px;
+      color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 600;
+      padding: 0.65rem 1.3rem;
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+    .btn-confirm:hover { filter: brightness(1.1); }
+
+    /* ── Scan another ── */
+    .scan-again {
+      text-align: center;
+      padding-top: 0.5rem;
+    }
+    .btn-again {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem; font-weight: 500;
+      padding: 0.65rem 1.6rem;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-again:hover { border-color: var(--border-lit); color: var(--text); }
+
+    /* ════════════════════════════
+       RECENT SCANS
+    ════════════════════════════ */
+    .recent-section {
+      margin-top: 2.5rem;
+    }
+    .section-label {
+      font-size: 0.7rem; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 0.9rem;
+    }
+    .recent-list {
+      display: flex; flex-direction: column; gap: 0.6rem;
+    }
+    .recent-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1.1rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .recent-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .recent-name {
+      flex: 1; font-size: 0.88rem; color: var(--text); font-weight: 500;
+    }
+    .recent-pts {
+      font-size: 0.78rem; color: var(--green-light); font-weight: 600;
+    }
+    .recent-time {
+      font-size: 0.72rem; color: var(--text-muted); min-width: 48px; text-align: right;
+    }
+
+    /* ════════════════════════════
+       RESPONSIVE
+    ════════════════════════════ */
+    @media (max-width: 640px) {
+      .topbar { padding: 0.7rem 1rem; }
+      .topbar-links { gap: 0.3rem; }
+      .topitem { display: none; }
+      .page-wrap { padding: 1.5rem 1rem 3rem; }
+      .result-grid { grid-template-columns: 1fr 1fr; }
+      .capture-actions { flex-direction: column; }
+      .btn-primary { flex: unset; }
+      .nav-user span { display: none; }
+    }
+
+    @media (max-width: 400px) {
+      .topbar-links .topitem { display: none; }
+      .result-grid { grid-template-columns: 1fr; }
+      .result-cell:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════
+       NAVBAR
+  ════════════════════════════ -->
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-user">
+      <span>Hi, User</span>
+      <div class="nav-points">240 pts</div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════
+       PAGE CONTENT
+  ════════════════════════════ -->
+  <div class="page-wrap">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="rule"></div>
+      <h1>Snap Your Waste</h1>
+      <p>Upload or capture a photo of any waste item. Our AI will classify it and guide you to the correct bin.</p>
+    </div>
+
+    <!-- ── Capture Card ── -->
+    <div class="capture-card">
+      <div class="capture-card-header">
+        <div class="step-badge">1</div>
+        <h2>Capture or Upload</h2>
+      </div>
+
+      <!-- Upload zone -->
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFile(this)"/>
+        <div class="upload-placeholder" style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;pointer-events:none;">
+          <div class="upload-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <h3>Drop image here</h3>
+          <p>or click to browse your files<br/>JPG, PNG, WEBP supported</p>
+        </div>
+        <img id="previewImg" src="" alt="Preview"/>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="capture-actions">
+        <button class="btn btn-outline" onclick="openCamera()">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Use Camera
+        </button>
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Photo
+        </button>
+      </div>
+
+      <!-- Camera stream (hidden until opened) -->
+      <div id="cameraSection">
+        <video id="cameraStream" autoplay playsinline></video>
+        <div class="camera-snap-row">
+          <button class="btn btn-outline" style="flex:1" onclick="closeCamera()">Cancel</button>
+          <button class="btn btn-primary" style="flex:2" onclick="snapPhoto()">Take Photo</button>
+        </div>
+      </div>
+
+      <canvas id="snapCanvas" style="display:none;"></canvas>
+    </div>
+
+    <!-- ── Analyse button ── -->
+    <div class="analyse-wrap" id="analyseWrap">
+      <div class="loading-bar-wrap" id="loadingBar">
+        <div class="loading-bar"></div>
+      </div>
+      <button class="btn-analyse" id="analyseBtn" onclick="analyseWaste()">
+        Analyse Waste
+      </button>
+    </div>
+
+    <!-- ════════════════════════════
+         RESULT SECTION
+    ════════════════════════════ -->
+    <div id="resultSection">
+
+      <div>
+        <p class="result-heading">Analysis Complete</p>
+        <p class="result-sub">Here is what we found and how to dispose of it correctly.</p>
+      </div>
+
+      <!-- Main result card -->
+      <div class="result-main">
+
+        <!-- Type bar -->
+        <div class="result-type-bar">
+          <div class="waste-label">
+            <div class="waste-dot" id="resultDot"></div>
+            <div>
+              <div class="waste-name" id="resultName">Plastic Bottle</div>
+              <div class="waste-category" id="resultCategory">Recyclable Plastic</div>
+            </div>
+          </div>
+          <div class="confidence-pill" id="resultConfidence">94% confidence</div>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="result-grid">
+          <div class="result-cell">
+            <div class="result-cell-label">Eco-Points Earned</div>
+            <div class="result-cell-value" id="resultPoints">+15</div>
+            <div class="result-cell-unit">added to your account</div>
+          </div>
+          <div class="result-cell">
+            <div class="result-cell-label">Bin Type</div>
+            <div class="result-cell-value" style="font-size:1.1rem;padding-top:0.2rem;" id="resultBinType">Blue Bin</div>
+            <div class="result-cell-unit" id="resultBinNote">Recyclables only</div>
+          </div>
+        </div>
+
+        <!-- Disposal steps -->
+        <div class="disposal-block">
+          <h4>How to Dispose</h4>
+          <div class="disposal-steps" id="disposalSteps">
+            <!-- filled by JS -->
+          </div>
+        </div>
+
+        <!-- Nearest bin -->
+        <div class="bin-row">
+          <div class="bin-info">
+            <div class="bin-name" id="binName">Block C Recycling Station</div>
+            <div class="bin-dist" id="binDist">Approx. 80m from your location</div>
+          </div>
+          <a href="map.html" class="btn-map">View on Map</a>
+        </div>
+
+      </div>
+
+      <!-- Points confirmation -->
+      <div class="points-toast">
+        <div class="points-toast-left">
+          <div class="points-toast-title">Points Awarded</div>
+          <div class="points-toast-val" id="toastPoints">+15</div>
+          <div class="points-toast-sub">Your total is now <strong id="toastTotal">255 pts</strong></div>
+        </div>
+        <button class="btn-confirm" onclick="confirmDisposal()">Mark as Disposed</button>
+      </div>
+
+      <!-- Scan again -->
+      <div class="scan-again">
+        <button class="btn-again" onclick="resetScan()">Scan Another Item</button>
+      </div>
+
+    </div>
+    <!-- /resultSection -->
+
+    <!-- ════════════════════════════
+         RECENT SCANS
+    ════════════════════════════ -->
+    <div class="recent-section">
+      <div class="section-label">Recent Scans</div>
+      <div class="recent-list" id="recentList">
+        <div class="recent-item">
+          <div class="recent-dot" style="background:#48c9b0;"></div>
+          <div class="recent-name">Glass</div>
+          <div class="recent-pts">+20 pts</div>
+          <div class="recent-time">—</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-dot" style="background:#9e9e9e;"></div>
+          <div class="recent-name">Metal</div>
+          <div class="recent-pts">+18 pts</div>
+          <div class="recent-time">—</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-dot" style="background:#7a8a7a;"></div>
+          <div class="recent-name">Mixed</div>
+          <div class="recent-pts">+8 pts</div>
+          <div class="recent-time">—</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-dot" style="background:#5a9e3a;"></div>
+          <div class="recent-name">Organic</div>
+          <div class="recent-pts">+10 pts</div>
+          <div class="recent-time">—</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-dot" style="background:#c0943a;"></div>
+          <div class="recent-name">Paper</div>
+          <div class="recent-pts">+12 pts</div>
+          <div class="recent-time">—</div>
+        </div>
+        <div class="recent-item">
+          <div class="recent-dot" style="background:#3a7ec0;"></div>
+          <div class="recent-name">Plastic</div>
+          <div class="recent-pts">+15 pts</div>
+          <div class="recent-time">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- /page-wrap -->
+
+
+  <script>
+    // ── Mock AI results database ──
+    const MOCK_RESULTS = [
+      {
+        name: 'Plastic Bottle', category: 'Recyclable Plastic', dotClass: 'plastic',
+        confidence: '94%', points: 15, binType: 'Blue Bin', binNote: 'Recyclables only',
+        steps: ['Remove the cap and rinse the bottle.', 'Flatten it to save bin space.', 'Place in the Blue recycling bin.'],
+        binName: 'Block C Recycling Station', binDist: 'Approx. 80m from your location'
+      },
+      {
+        name: 'Banana Peel', category: 'Organic / Food Waste', dotClass: 'organic',
+        confidence: '97%', points: 10, binType: 'Green Bin', binNote: 'Compostable waste',
+        steps: ['No preparation needed.', 'Place directly in the Green compost bin.', 'Do not mix with plastic or paper.'],
+        binName: 'Main Canteen Compost Point', binDist: 'Approx. 40m from your location'
+      },
+      {
+        name: 'Aluminium Can', category: 'Metal — Recyclable', dotClass: 'metal',
+        confidence: '91%', points: 18, binType: 'Blue Bin', binNote: 'Metals & recyclables',
+        steps: ['Rinse the can briefly.', 'Crush it flat if possible.', 'Drop into the Blue recycling bin.'],
+        binName: 'Block A Bin Cluster', binDist: 'Approx. 120m from your location'
+      },
+      {
+        name: 'Cardboard Box', category: 'Paper / Cardboard', dotClass: 'paper',
+        confidence: '96%', points: 12, binType: 'Yellow Bin', binNote: 'Paper & cardboard',
+        steps: ['Remove any tape or staples.', 'Fold flat before disposing.', 'Place in the Yellow paper bin.'],
+        binName: 'Library Recycling Point', binDist: 'Approx. 60m from your location'
+      },
+      {
+        name: 'Broken Phone', category: 'Electronic Waste', dotClass: 'ewaste',
+        confidence: '88%', points: 25, binType: 'E-Waste Drop Box', binNote: 'Electronics only',
+        steps: ['Do not place in regular bins.', 'Bring to the designated E-Waste collection point.', 'Data on the device is your responsibility to wipe.'],
+        binName: 'Admin Block E-Waste Bay', binDist: 'Approx. 200m from your location'
+      },
+    ];
+
+    let currentPoints = 240;
+    let hasImage = false;
+    let stream = null;
+
+    // ── File upload ──
+    function handleFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('previewImg').src = e.target.result;
+        document.getElementById('uploadZone').classList.add('has-image');
+        showAnalyseBtn();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // drag & drop
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault(); zone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('previewImg').src = ev.target.result;
+          document.getElementById('uploadZone').classList.add('has-image');
+          showAnalyseBtn();
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // ── Camera ──
+    async function openCamera() {
+      // Check if API exists at all
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera API not available. Make sure you are on localhost or HTTPS.');
+        return;
+      }
+
+      try {
+        // Try rear camera first (mobile), fall back to any camera
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
+
+        const video = document.getElementById('cameraStream');
+        video.srcObject = stream;
+
+        // Some browsers need this to actually play
+        video.onloadedmetadata = () => { video.play(); };
+
+        document.getElementById('cameraSection').classList.add('visible');
+
+      } catch (err) {
+        if (err.name === 'NotAllowedError') {
+          alert('Camera permission denied.\n\nFix: Click the camera icon in your browser address bar and allow camera access, then refresh.');
+        } else if (err.name === 'NotFoundError') {
+          alert('No camera found on this device.');
+        } else if (err.name === 'NotReadableError') {
+          alert('Camera is already in use by another app. Close other apps using the camera and try again.');
+        } else {
+          alert('Camera error: ' + err.name + '\n' + err.message);
+        }
+      }
+    }
+
+    function closeCamera() {
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      document.getElementById('cameraSection').classList.remove('visible');
+    }
+
+    function snapPhoto() {
+      const video = document.getElementById('cameraStream');
+      const canvas = document.getElementById('snapCanvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      document.getElementById('previewImg').src = canvas.toDataURL('image/jpeg');
+      document.getElementById('uploadZone').classList.add('has-image');
+      closeCamera();
+      showAnalyseBtn();
+    }
+
+    // ── Show Analyse button after image selected ──
+    function showAnalyseBtn() {
+      hasImage = true;
+      document.getElementById('analyseWrap').classList.add('visible');
+      document.getElementById('resultSection').classList.remove('visible');
+      document.getElementById('resultSection').style.display = 'none';
+    }
+
+    // ── Analyse ──
+    async function analyseWaste() {
+
+  if (!hasImage) return;
+
+  const btn = document.getElementById('analyseBtn');
+  const loadingBar = document.getElementById('loadingBar');
+
+  btn.disabled = true;
+  btn.textContent = "Analysing...";
+  loadingBar.classList.add('visible');
+
+  try {
+
+    const fileInput = document.getElementById("fileInput");
+    const file = fileInput.files[0];
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    // get user location
+    const position = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject)
+    );
+
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    formData.append("lat", lat);
+    formData.append("lon", lon);
+
+    const response = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await response.json();
+
+    if (data.status === "success") {
+
+      const result = {
+  name: data.data.waste_type,
+  category: data.data.waste_type,
+  dotClass: data.data.waste_type,
+  confidence: Math.round(data.data.confidence * 100) + "%",
+  points: data.data.eco_points,
+  binType: "Campus Recycling Bin",
+  binNote: "Check the bin map for nearest location",
+  steps: [
+    "Carry the waste to the nearest bin",
+    "Open the bin map to find location",
+    "Press 'Mark as Disposed' when done"
+  ],
+  binName: "Check Bin Map",
+  binDist: "Open Bin Map to locate"
+};
+      showResult(result);
+
+    } else {
+
+      alert(data.message);
+
+    }
+
+  } catch (err) {
+
+    alert("Error analysing waste");
+
+  }
+
+  loadingBar.classList.remove('visible');
+  btn.disabled = false;
+  btn.textContent = "Analyse Waste";
+
+}
+
+    // ── Show result ──
+    function showResult(r) {
+      // type bar
+      const dot = document.getElementById('resultDot');
+      dot.className = 'waste-dot ' + r.dotClass;
+      document.getElementById('resultName').textContent = r.name;
+      document.getElementById('resultCategory').textContent = r.category;
+      document.getElementById('resultConfidence').textContent = r.confidence + ' confidence';
+
+      // stats
+      document.getElementById('resultPoints').textContent = '+' + r.points;
+      document.getElementById('resultBinType').textContent = r.binType;
+      document.getElementById('resultBinNote').textContent = r.binNote;
+
+      // disposal steps
+      const stepsEl = document.getElementById('disposalSteps');
+      stepsEl.innerHTML = r.steps.map((s, i) =>
+        `<div class="disposal-step">
+          <div class="step-num">${i + 1}</div>
+          <span>${s}</span>
+        </div>`
+      ).join('');
+
+      // bin info
+      document.getElementById('binName').textContent = r.binName;
+      document.getElementById('binDist').textContent = r.binDist;
+
+      // points toast
+      document.getElementById('toastPoints').textContent = '+' + r.points;
+      document.getElementById('toastTotal').textContent = (currentPoints + r.points) + ' pts';
+
+      // show section
+      const sec = document.getElementById('resultSection');
+      sec.style.display = 'flex';
+      sec.classList.add('visible');
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // store for confirm
+      sec.dataset.pendingPoints = r.points;
+      sec.dataset.itemName = r.name;
+
+      document.getElementById("viewMapBtn").onclick = function(){
+
+    const waste = r.name.toLowerCase();
+
+    window.location.href = "map.html?waste=" + waste;
+
+};
+
+    }
+
+    // ── Confirm disposal ──
+   async function confirmDisposal() {
+
+  try {
+
+    const sec = document.getElementById('resultSection');
+
+    const pts = parseInt(sec.dataset.pendingPoints || 0);
+    const wasteType = document.getElementById('resultName').textContent;
+
+    const location = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject);
+    });
+
+    const lat = location.coords.latitude;
+    const lon = location.coords.longitude;
+
+    const response = await fetch("http://127.0.0.1:5000/api/dispose", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user_id: 1,
+        waste_type: wasteType.toLowerCase(),
+        eco_points: pts,
+        lat: lat,
+        lon: lon
+      })
+    });
+
+    const data = await response.json();
+
+console.log("Dispose response:", data);
+
+if (data.status === "success") {
+
+    currentPoints += pts;
+
+    localStorage.setItem("user_points", currentPoints);
+
+    const nav = document.querySelector(".nav-points");
+    if(nav) nav.textContent = currentPoints + " pts";
+
+    alert("Disposal confirmed! +" + pts + " eco-points added.");
+
+}
+else if (data.status === "rejected") {
+
+    alert(data.message);
+
+}
+else {
+
+    alert("Error confirming disposal");
+
+}
+
+  } catch (error) {
+
+    console.error("Error in confirmDisposal:", error);
+
+    alert("An error occurred while confirming disposal.");
+
+  }
+
+}
+
+    // ── Reset ──
+    function resetScan() {
+      hasImage = false;
+      document.getElementById('uploadZone').classList.remove('has-image');
+      document.getElementById('previewImg').src = '';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('analyseWrap').classList.remove('visible');
+      const sec = document.getElementById('resultSection');
+      sec.classList.remove('visible');
+      sec.style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+async function updateNavbarPoints(){
+
+  const token = localStorage.getItem("token");
+
+  if(!token) return;
+
+  const res = await fetch("http://127.0.0.1:5000/api/user/me", {
+      headers: {
+          "Authorization": "Bearer " + token
+      }
+  });
+
+  const data = await res.json();
+
+  if(data.status === "success"){
+      const pts = data.user.points;
+      const nav = document.querySelector(".nav-points");
+      if(nav) nav.textContent = pts + " pts";
+  }
+
+}
+
+updateNavbarPoints();
+
+function syncNavbarPoints(){
+
+    const pts = localStorage.getItem("user_points");
+
+    if(!pts) return;
+
+    const nav = document.querySelector(".nav-points");
+
+    if(nav){
+        nav.textContent = pts + " pts";
+    }
+
+}
+
+syncNavbarPoints();
+
+  </script>
+
+</body>
+</html>

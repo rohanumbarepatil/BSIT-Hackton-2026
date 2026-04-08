@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — About Us</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a1f14;
+      --bg-card:     #0f2a1a;
+      --bg-raised:   #152f1e;
+      --border:      #1f4a2e;
+      --border-lit:  #2d7a4f;
+      --green:       #2d7a4f;
+      --green-light: #4caf7d;
+      --green-pale:  #c8ead8;
+      --text:        #e8f0eb;
+      --text-muted:  #7a9e87;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -45deg, transparent, transparent 40px,
+        rgba(45,122,79,0.018) 40px, rgba(45,122,79,0.018) 41px
+      );
+      pointer-events: none;
+    }
+
+    /* NAVBAR */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2rem; border-bottom: 1px solid var(--border);
+      position: relative; z-index: 10; background: var(--bg);
+    }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--text); text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+    .nav-btn { padding: 0.38rem 1rem; border: 1px solid var(--border-lit); border-radius: 999px; color: var(--text); font-size: 0.82rem; font-weight: 500; text-decoration: none; background: transparent; transition: background 0.2s; }
+    .nav-btn:hover, .nav-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+    /* PAGE */
+    .page-wrap {
+      position: relative; z-index: 1;
+      max-width: 860px; margin: 0 auto;
+      padding: 4rem 1.5rem 6rem;
+    }
+
+    /* HERO */
+    .hero-section {
+      text-align: center; margin-bottom: 5rem;
+    }
+    .rule-center {
+      width: 48px; height: 3px; background: var(--green-light);
+      border-radius: 2px; margin: 0 auto 1.2rem;
+    }
+    .hero-section h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 6vw, 3.4rem);
+      font-weight: 900; line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .hero-section h1 span { color: var(--green-light); }
+    .hero-section p {
+      font-size: 1rem; color: var(--text-muted);
+      max-width: 520px; margin: 0 auto; line-height: 1.7;
+    }
+
+    /* PROBLEM STATS */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-bottom: 5rem;
+    }
+    .stat-box {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.6rem 1.2rem; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .stat-box::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 3px; background: var(--green-light); opacity: 0.4;
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem; font-weight: 900;
+      color: var(--green-light); line-height: 1; margin-bottom: 0.4rem;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* HOW IT WORKS */
+    .section-label {
+      font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 900;
+      margin-bottom: 2rem;
+    }
+    .how-section { margin-bottom: 5rem; }
+
+    .steps-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+    }
+    .step {
+      background: var(--bg-card); padding: 1.8rem 1.4rem;
+      position: relative;
+    }
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem; font-weight: 900;
+      color: var(--border-lit); line-height: 1; margin-bottom: 0.8rem;
+      opacity: 0.6;
+    }
+    .step-icon { font-size: 1.8rem; margin-bottom: 0.6rem; }
+    .step-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .step-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.55; }
+
+    /* TEAM */
+    .team-section { margin-bottom: 4rem; }
+
+    .team-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem; margin-bottom: 2rem;
+    }
+    .team-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem 1.5rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .team-card:hover { border-color: var(--border-lit); transform: translateY(-3px); }
+
+    .team-photo-wrap {
+      width: 110px; height: 110px;
+      border-radius: 50%; margin: 0 auto 1.1rem;
+      border: 3px solid var(--border-lit);
+      overflow: hidden;
+      box-shadow: 0 0 0 6px rgba(45,122,79,0.12);
+    }
+    .team-photo-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: top center;
+    }
+    .team-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;
+    }
+    .team-role {
+      font-size: 0.75rem; font-weight: 600; color: var(--green-light);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem;
+    }
+    .team-sub { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* CLOSING LINE */
+    .closing {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-left: 4px solid var(--green-light);
+      border-radius: 0 16px 16px 0;
+      padding: 1.4rem 1.6rem;
+      font-size: 0.92rem; color: var(--text-muted); line-height: 1.7;
+    }
+    .closing strong { color: var(--text); }
+
+    /* CTA */
+    .cta-row {
+      display: flex; justify-content: center; gap: 1rem;
+      margin-top: 3rem; flex-wrap: wrap;
+    }
+    .btn-main {
+      padding: 0.75rem 1.8rem; background: var(--green);
+      border: none; border-radius: 999px; color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
+      text-decoration: none; transition: filter 0.2s, transform 0.15s;
+    }
+    .btn-main:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    .btn-ghost {
+      padding: 0.75rem 1.8rem; background: transparent;
+      border: 1px solid var(--border-lit); border-radius: 999px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+      text-decoration: none; transition: background 0.2s;
+    }
+    .btn-ghost:hover { background: var(--bg-raised); }
+
+    /* ANIMATIONS */
+    .fade-up { opacity: 0; transform: translateY(18px); animation: fadeUp 0.55s cubic-bezier(.22,1,.36,1) forwards; }
+    .fade-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-up:nth-child(2) { animation-delay: 0.12s; }
+    .fade-up:nth-child(3) { animation-delay: 0.19s; }
+    @keyframes fadeUp { to { opacity: 1; transform: none; } }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .topbar { padding: 0.9rem 1rem; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .stats-row .stat-box:last-child { grid-column: span 2; }
+      .steps-row { grid-template-columns: 1fr; }
+      .team-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-right">
+      <a href="camera.html"    class="nav-btn">Snap Waste</a>
+      <a href="dashboard.html" class="nav-btn">Dashboard</a>
+      <a href="about.html"     class="nav-btn active">About Us</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- HERO -->
+    <div class="hero-section fade-up">
+      <div class="rule-center"></div>
+      <h1>Turning Waste into<br><span>Wealth &amp; Action</span></h1>
+      <p>WasteWatchers is a campus-first AI platform that makes waste disposal smarter, more rewarding, and genuinely fun.</p>
+    </div>
+
+    <!-- THE PROBLEM -->
+    <div style="margin-bottom:5rem;" class="fade-up">
+      <div class="section-label">The Problem</div>
+      <div class="section-title">Why this matters</div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-num">91%</div>
+          <div class="stat-label">of plastic waste is never recycled globally</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">62M</div>
+          <div class="stat-label">tonnes of waste generated in India every year</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">0</div>
+          <div class="stat-label">incentive for students to sort or dispose correctly</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="how-section fade-up">
+      <div class="section-label">How It Works</div>
+      <div class="section-title">Three steps to a cleaner campus</div>
+      <div class="steps-row">
+        <div class="step">
+          <div class="step-num">01</div>
+          
+          <div class="step-title">Snap Waste</div>
+          <div class="step-desc">Point your camera at any waste item. Our AI classifies it instantly — plastic, organic, e-waste, paper, metal or glass.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          
+          <div class="step-title">Dispose Right</div>
+          <div class="step-desc">Get exact disposal instructions and the nearest bin location on campus. Mark it as disposed to earn eco-points.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          
+          <div class="step-title">Earn &amp; Redeem</div>
+          <div class="step-desc">Collect eco-points from scans and games. Redeem them for canteen discounts, Swiggy vouchers, Amazon gift cards and more.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="team-section fade-up">
+      <div class="section-label">The Team</div>
+      <div class="section-title">Built by students, for students</div>
+
+      <div class="team-grid">
+
+        <div class="team-card">
+          <div class="team-photo-wrap">
+            <img src="sneha.jpg" alt="Sneha Khetan"/>
+          </div>
+          <div class="team-name">Sneha Khetan</div>
+          <div class="team-role">Frontend Designer &amp; UI/UX</div>
+          <div class="team-sub">Designed and built every screen of WasteWatchers — from the landing page to the rewards store.</div>
+        </div>
+
+        <div class="team-card">
+          <div class="team-photo-wrap">
+            <img src="surya.png" alt="Surya Kumar Srivastava"/>
+          </div>
+          <div class="team-name">Surya Kumar Srivastava</div>
+          <div class="team-role">AI/ML Developer &amp; Backend</div>
+          <div class="team-sub">Built the AI waste classification engine and backend integration powering real-time scan results.</div>
+        </div>
+
+      </div>
+
+      <div class="closing">
+        <strong>Together, we built WasteWatchers</strong> to prove that technology can turn waste into wealth and protect our ozone layer. Let's work together for a cleaner, greener future.
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-row fade-up">
+      <a href="intro.html" class="btn-main">Start Your Journey</a>
+      <a href="map.html"   class="btn-ghost">Find Nearest Bin</a>
+    </div>
+
+  </div>
+
+</body>
+</html>

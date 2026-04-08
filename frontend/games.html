@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>WasteWatchers — Game Zone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0a1f14;
+      --bg-card:      #0f2a1a;
+      --bg-raised:    #152f1e;
+      --border:       #1f4a2e;
+      --border-lit:   #2d7a4f;
+      --green:        #2d7a4f;
+      --green-mid:    #3a9460;
+      --green-light:  #4caf7d;
+      --green-pale:   #c8ead8;
+      --text:         #e8f0eb;
+      --text-muted:   #7a9e87;
+      --gold:         #c9952a;
+      --gold-light:   #e8b84b;
+      --red:          #c0392b;
+      --red-light:    #e74c3c;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: repeating-linear-gradient(
+        -45deg, transparent, transparent 40px,
+        rgba(45,122,79,0.018) 40px, rgba(45,122,79,0.018) 41px
+      );
+      pointer-events: none;
+    }
+
+    /* NAVBAR */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      position: relative; z-index: 10;
+    }
+    .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--text); text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+    .nav-points { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.9rem; font-size: 0.78rem; color: var(--green-light); font-weight: 600; }
+    .nav-btn { padding: 0.38rem 1rem; border: 1px solid var(--border-lit); border-radius: 999px; color: var(--text); font-size: 0.82rem; font-weight: 500; text-decoration: none; background: transparent; transition: background 0.2s, color 0.2s; font-family: 'DM Sans', sans-serif; cursor: pointer; }
+    .nav-btn:hover, .nav-btn.active { background: var(--green); border-color: var(--green); color: #fff; }
+
+    /* PAGE */
+    .page-wrap { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    /* SCREENS */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* SELECTION SCREEN */
+    .page-header { margin-bottom: 2.5rem; }
+    .rule { width: 48px; height: 3px; background: var(--green-light); border-radius: 2px; margin-bottom: 1rem; }
+    .page-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.9rem,5vw,2.6rem); font-weight: 900; line-height: 1.1; margin-bottom: 0.4rem; }
+    .page-header p { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
+
+    .daily-bar { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.4rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 0.75rem; }
+    .daily-bar-left { display: flex; flex-direction: column; gap: 0.2rem; }
+    .daily-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .daily-track { width: 180px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 0.4rem; }
+    .daily-fill { height: 100%; background: var(--green-light); border-radius: 3px; transition: width 0.8s cubic-bezier(.22,1,.36,1); }
+    .daily-count { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .pts-today { background: var(--bg-raised); border: 1px solid var(--border-lit); border-radius: 8px; padding: 0.4rem 0.9rem; font-size: 0.8rem; font-weight: 600; color: var(--green-light); }
+
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; }
+
+    .game-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.2s; position: relative; }
+    .game-card:hover { border-color: var(--border-lit); transform: translateY(-3px); }
+    .game-card.locked { opacity: 0.45; pointer-events: none; }
+
+    .game-card-top { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+    .game-card-body { padding: 1.2rem 1.3rem 1.4rem; }
+    .game-name { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .game-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem; }
+    .game-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .game-tag { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.6rem; font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+    .game-tag.pts { color: var(--green-light); border-color: var(--border-lit); }
+
+    /* GAME SCREEN */
+    .game-topbar { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; flex-wrap: wrap; }
+    .btn-back { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.9rem; color: var(--text-muted); font-size: 0.8rem; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color 0.2s, color 0.2s; }
+    .btn-back:hover { border-color: var(--border-lit); color: var(--text); }
+    .game-title-bar { flex: 1; }
+    .game-title-bar h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; }
+    .game-title-bar p { font-size: 0.78rem; color: var(--text-muted); }
+    .score-pill { background: var(--bg-raised); border: 1px solid var(--border-lit); border-radius: 999px; padding: 0.3rem 1rem; font-size: 0.78rem; font-weight: 600; color: var(--green-light); }
+
+    /* RESULT OVERLAY */
+    .result-overlay { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(10,31,20,0.92); align-items: center; justify-content: center; }
+    .result-overlay.show { display: flex; }
+    .result-box { background: var(--bg-card); border: 1px solid var(--border-lit); border-radius: 20px; padding: 2.5rem 2rem; text-align: center; max-width: 340px; width: 90%; animation: popIn 0.35s cubic-bezier(.22,1,.36,1); }
+    @keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .result-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+    .result-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 0.4rem; }
+    .result-pts { font-size: 2rem; font-weight: 700; color: var(--green-light); margin: 0.75rem 0; }
+    .result-sub { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5; }
+    .result-btns { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { padding: 0.65rem 1.5rem; background: var(--green); border: none; border-radius: 10px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: filter 0.2s; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary { padding: 0.65rem 1.5rem; background: transparent; border: 1px solid var(--border-lit); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-secondary:hover { background: var(--bg-raised); }
+
+    /* WASTE SORTER */
+    .sorter-wrap { max-width: 700px; margin: 0 auto; }
+    .sorter-progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-muted); }
+    .sorter-prog-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; margin: 0 1rem; }
+    .sorter-prog-fill { height: 100%; background: var(--green-light); border-radius: 2px; transition: width 0.4s ease; }
+    .sorter-item-display { background: var(--bg-card); border: 2px solid var(--border-lit); border-radius: 18px; padding: 2rem; text-align: center; margin-bottom: 1.5rem; }
+    .sorter-item-icon { font-size: 4rem; margin-bottom: 0.6rem; }
+    .sorter-item-name { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .sorter-item-hint { font-size: 0.8rem; color: var(--text-muted); }
+    .bins-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.85rem; }
+    .bin-btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 0.5rem; text-align: center; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+    .bin-btn:hover { border-color: var(--border-lit); transform: translateY(-2px); }
+    .bin-btn.correct { background: rgba(76,175,125,0.15); border-color: var(--green-light); }
+    .bin-btn.wrong   { background: rgba(192,57,43,0.15);  border-color: var(--red-light); }
+    .bin-icon { font-size: 1.8rem; margin-bottom: 0.4rem; }
+    .bin-label { font-size: 0.75rem; font-weight: 600; color: var(--text); }
+    .sorter-feedback { text-align: center; height: 28px; font-size: 0.85rem; font-weight: 600; margin-top: 1rem; }
+
+    /* ECO QUIZ */
+    .quiz-wrap { max-width: 640px; margin: 0 auto; }
+    .quiz-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; font-size: 0.78rem; color: var(--text-muted); }
+    .quiz-prog-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; margin: 0 1rem; }
+    .quiz-prog-fill { height: 100%; background: var(--green-light); border-radius: 2px; transition: width 0.5s ease; }
+    .quiz-timer-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+    .quiz-timer { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.8rem; font-size: 0.82rem; font-weight: 600; color: var(--text); min-width: 70px; text-align: center; transition: color 0.2s, border-color 0.2s; }
+    .quiz-timer.urgent { color: var(--red-light); border-color: var(--red-light); }
+    .quiz-question-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 1.8rem 1.6rem; margin-bottom: 1.2rem; }
+    .quiz-q-num { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+    .quiz-q-text { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; line-height: 1.45; }
+    .quiz-options { display: flex; flex-direction: column; gap: 0.7rem; }
+    .quiz-option { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1.2rem; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text); transition: border-color 0.15s, background 0.15s; display: flex; align-items: center; gap: 0.8rem; }
+    .quiz-option:hover:not(.disabled) { border-color: var(--border-lit); background: var(--bg-raised); }
+    .quiz-option.correct { background: rgba(76,175,125,0.15); border-color: var(--green-light); color: var(--green-pale); }
+    .quiz-option.wrong   { background: rgba(192,57,43,0.12);  border-color: var(--red-light);  color: #f0a0a0; }
+    .quiz-option.disabled { pointer-events: none; }
+    .opt-letter { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; background: var(--bg-raised); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
+    .quiz-option.correct .opt-letter { background: var(--green); border-color: var(--green); color: #fff; }
+    .quiz-option.wrong   .opt-letter { background: var(--red);   border-color: var(--red);   color: #fff; }
+    .quiz-explanation { background: var(--bg-raised); border-left: 3px solid var(--green-light); border-radius: 0 10px 10px 0; padding: 0.8rem 1rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.55; margin-top: 1rem; display: none; }
+    .quiz-explanation.show { display: block; }
+    .btn-next { width: 100%; margin-top: 1rem; padding: 0.75rem; background: var(--green); border: none; border-radius: 12px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: none; transition: filter 0.2s; }
+    .btn-next.show { display: block; }
+    .btn-next:hover { filter: brightness(1.1); }
+
+    /* WORD SCRAMBLE */
+    .scramble-wrap { max-width: 580px; margin: 0 auto; }
+    .scramble-progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; font-size: 0.78rem; color: var(--text-muted); }
+    .scramble-prog-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; margin: 0 1rem; }
+    .scramble-prog-fill { height: 100%; background: var(--green-light); border-radius: 2px; transition: width 0.4s; }
+    .scramble-card { background: var(--bg-card); border: 2px solid var(--border-lit); border-radius: 18px; padding: 2rem 1.8rem; text-align: center; margin-bottom: 1.5rem; }
+    .scramble-hint { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.8rem; }
+    .scramble-letters { display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .s-letter { width: 44px; height: 52px; background: var(--bg-raised); border: 2px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: var(--green-light); text-transform: uppercase; animation: letterPop 0.3s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes letterPop { from { transform: scale(0.6) rotate(-8deg); opacity:0; } to { transform: scale(1) rotate(0); opacity:1; } }
+    .scramble-input-row { display: flex; gap: 0.75rem; justify-content: center; }
+    .scramble-input { flex: 1; max-width: 260px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; color: var(--text); text-transform: uppercase; letter-spacing: 0.1em; outline: none; transition: border-color 0.2s; }
+    .scramble-input:focus { border-color: var(--border-lit); }
+    .scramble-input.correct { border-color: var(--green-light); background: rgba(76,175,125,0.1); }
+    .scramble-input.wrong   { border-color: var(--red-light);   background: rgba(192,57,43,0.1); }
+    .btn-check { padding: 0.7rem 1.3rem; background: var(--green); border: none; border-radius: 10px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: filter 0.2s; }
+    .btn-check:hover { filter: brightness(1.1); }
+    .scramble-feedback { text-align: center; margin-top: 0.75rem; font-size: 0.85rem; font-weight: 600; min-height: 24px; }
+    .scramble-clue { background: var(--bg-raised); border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; padding: 0.7rem 1rem; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: 0.5rem; display: none; }
+    .scramble-clue.show { display: block; }
+    .btn-reveal { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.9rem; font-size: 0.75rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 0.5rem; transition: border-color 0.2s; }
+    .btn-reveal:hover { border-color: var(--border-lit); color: var(--text); }
+    .btn-next-scramble { width: 100%; margin-top: 1.2rem; padding: 0.75rem; background: var(--green); border: none; border-radius: 12px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: none; transition: filter 0.2s; }
+    .btn-next-scramble.show { display: block; }
+    .btn-next-scramble:hover { filter: brightness(1.1); }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .topbar { padding: 0.9rem 1rem; }
+      .page-wrap { padding: 1.5rem 1rem 4rem; }
+      .bins-grid { grid-template-columns: repeat(2,1fr); }
+      .daily-track { width: 120px; }
+      .games-grid { grid-template-columns: 1fr; }
+    }
+
+    /* FADE IN */
+    .fade-up { opacity: 0; transform: translateY(16px); animation: fadeUp 0.5s cubic-bezier(.22,1,.36,1) forwards; }
+    @keyframes fadeUp { to { opacity: 1; transform: none; } }
+    .fade-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-up:nth-child(2) { animation-delay: 0.12s; }
+    .fade-up:nth-child(3) { animation-delay: 0.19s; }
+    .fade-up:nth-child(4) { animation-delay: 0.26s; }
+  </style>
+</head>
+<body>
+
+  <nav class="topbar">
+    <a href="intro.html" class="nav-logo">WasteWatchers</a>
+    <div class="nav-right">
+      <div class="nav-points" id="navPoints">2,400 pts</div>
+      <a href="camera.html"   class="nav-btn">Snap Waste</a>
+      <a href="games.html"    class="nav-btn active">Game Zone</a>
+      <a href="rewards.html"  class="nav-btn">Rewards</a>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+
+    <!-- SCREEN: SELECTION -->
+    <div class="screen active" id="screen-select">
+
+      <div class="page-header fade-up">
+        <div class="rule"></div>
+        <h1>Game Zone</h1>
+        <p>Play eco-themed games, earn 10 pts per game. Maximum 3 games per day.</p>
+      </div>
+
+      <div class="daily-bar fade-up">
+        <div class="daily-bar-left">
+          <div class="daily-label">Daily Progress</div>
+          <div class="daily-count" id="dailyCountText">0 of 3 played today</div>
+          <div class="daily-track">
+            <div class="daily-fill" id="dailyFill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="pts-today" id="ptsTodayPill">+0 pts earned today</div>
+      </div>
+
+      <div class="games-grid">
+
+        <div class="game-card fade-up" onclick="startGame('sorter')" id="card-sorter">
+          <div class="game-card-top" style="background:linear-gradient(135deg,#0f3a20,#1a5a30);">&#9851;</div>
+          <div class="game-card-body">
+            <div class="game-name">Waste Sorter</div>
+            <div class="game-desc">10 waste items appear one by one. Pick the right bin — Plastic, Organic, Paper, Metal, Glass, or E-Waste. Score 5+ to earn points.</div>
+            <div class="game-meta">
+              <span class="game-tag">10 rounds</span>
+              <span class="game-tag">Quick play</span>
+              <span class="game-tag pts">+10 pts</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-card fade-up" onclick="startGame('quiz')" id="card-quiz">
+          <div class="game-card-top" style="background:linear-gradient(135deg,#1a3a0f,#2a5a1a);">&#127807;</div>
+          <div class="game-card-body">
+            <div class="game-name">Eco Quiz</div>
+            <div class="game-desc">8 multiple-choice questions on waste disposal, recycling facts and environmental trivia. 15 seconds each. Score 4+ to earn points.</div>
+            <div class="game-meta">
+              <span class="game-tag">8 questions</span>
+              <span class="game-tag">15s timer</span>
+              <span class="game-tag pts">+10 pts</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="game-card fade-up" onclick="startGame('scramble')" id="card-scramble">
+          <div class="game-card-top" style="background:linear-gradient(135deg,#0f2a3a,#1a4a5a);">&#128292;</div>
+          <div class="game-card-body">
+            <div class="game-name">Word Scramble</div>
+            <div class="game-desc">Unscramble 8 eco-related words — from RECYCLE to COMPOST. Type your answer and hit Check. Use the clue if you're stuck. Solve 4+ to earn.</div>
+            <div class="game-meta">
+              <span class="game-tag">8 words</span>
+              <span class="game-tag">Clues available</span>
+              <span class="game-tag pts">+10 pts</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- /screen-select -->
+
+
+    <!-- SCREEN: WASTE SORTER -->
+    <div class="screen" id="screen-sorter">
+      <div class="game-topbar">
+        <button class="btn-back" onclick="goBack()">&#8592; Back</button>
+        <div class="game-title-bar">
+          <h2>Waste Sorter</h2>
+          <p>Drop each item in the correct bin</p>
+        </div>
+        <div class="score-pill" id="sorterScore">0 / 10</div>
+      </div>
+
+      <div class="sorter-wrap">
+        <div class="sorter-progress">
+          <span id="sorterRoundLabel">Round 1 of 10</span>
+          <div class="sorter-prog-track"><div class="sorter-prog-fill" id="sorterProgFill" style="width:0%"></div></div>
+          <span id="sorterCorrectLabel">0 correct</span>
+        </div>
+
+        <div class="sorter-item-display">
+          <div class="sorter-item-icon" id="sorterIcon"></div>
+          <div class="sorter-item-name" id="sorterItemName"></div>
+          <div class="sorter-item-hint" id="sorterItemHint">Which bin does this belong to?</div>
+        </div>
+
+        <div class="bins-grid">
+          <div class="bin-btn" id="bin-plastic" onclick="checkBin('plastic')">
+            <div class="bin-icon">&#128309;</div>
+            <div class="bin-label">Plastic</div>
+          </div>
+          <div class="bin-btn" id="bin-organic" onclick="checkBin('organic')">
+            <div class="bin-icon">&#128994;</div>
+            <div class="bin-label">Organic</div>
+          </div>
+          <div class="bin-btn" id="bin-paper" onclick="checkBin('paper')">
+            <div class="bin-icon">&#128993;</div>
+            <div class="bin-label">Paper</div>
+          </div>
+          <div class="bin-btn" id="bin-metal" onclick="checkBin('metal')">
+            <div class="bin-icon">&#9898;</div>
+            <div class="bin-label">Metal</div>
+          </div>
+          <div class="bin-btn" id="bin-glass" onclick="checkBin('glass')">
+            <div class="bin-icon">&#129401;</div>
+            <div class="bin-label">Glass</div>
+          </div>
+          <div class="bin-btn" id="bin-ewaste" onclick="checkBin('ewaste')">
+            <div class="bin-icon">&#128995;</div>
+            <div class="bin-label">E-Waste</div>
+          </div>
+        </div>
+        <div class="sorter-feedback" id="sorterFeedback"></div>
+      </div>
+    </div>
+    <!-- /screen-sorter -->
+
+
+    <!-- SCREEN: ECO QUIZ -->
+    <div class="screen" id="screen-quiz">
+      <div class="game-topbar">
+        <button class="btn-back" onclick="goBack()">&#8592; Back</button>
+        <div class="game-title-bar">
+          <h2>Eco Quiz</h2>
+          <p>8 questions &middot; 15 seconds each</p>
+        </div>
+        <div class="score-pill" id="quizScore">0 / 8</div>
+      </div>
+
+      <div class="quiz-wrap">
+        <div class="quiz-progress-row">
+          <span id="quizQLabel">Question 1 of 8</span>
+          <div class="quiz-prog-track"><div class="quiz-prog-fill" id="quizProgFill" style="width:0%"></div></div>
+          <span id="quizCorrectLabel">0 correct</span>
+        </div>
+        <div class="quiz-timer-row">
+          <div class="quiz-timer" id="quizTimer">15s</div>
+        </div>
+        <div class="quiz-question-card">
+          <div class="quiz-q-num" id="quizQNum">Question 1</div>
+          <div class="quiz-q-text" id="quizQText"></div>
+        </div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-explanation" id="quizExplanation"></div>
+        <button class="btn-next" id="btnNextQuiz" onclick="nextQuizQuestion()">Next Question &#8594;</button>
+      </div>
+    </div>
+    <!-- /screen-quiz -->
+
+
+    <!-- SCREEN: WORD SCRAMBLE -->
+    <div class="screen" id="screen-scramble">
+      <div class="game-topbar">
+        <button class="btn-back" onclick="goBack()">&#8592; Back</button>
+        <div class="game-title-bar">
+          <h2>Word Scramble</h2>
+          <p>Unscramble the eco word</p>
+        </div>
+        <div class="score-pill" id="scrambleScore">0 / 8</div>
+      </div>
+
+      <div class="scramble-wrap">
+        <div class="scramble-progress-row">
+          <span id="scrambleRoundLabel">Word 1 of 8</span>
+          <div class="scramble-prog-track"><div class="scramble-prog-fill" id="scrambleProgFill" style="width:0%"></div></div>
+          <span id="scrambleSolvedLabel">0 solved</span>
+        </div>
+
+        <div class="scramble-card">
+          <div class="scramble-hint" id="scrambleHint">Category: —</div>
+          <div class="scramble-letters" id="scrambleLetters"></div>
+          <div class="scramble-input-row">
+            <input class="scramble-input" id="scrambleInput" type="text" placeholder="Type answer..." maxlength="14"
+              onkeydown="if(event.key==='Enter') checkScramble()"/>
+            <button class="btn-check" onclick="checkScramble()">Check</button>
+          </div>
+          <div class="scramble-feedback" id="scrambleFeedback"></div>
+          <div class="scramble-clue" id="scrambleClue"></div>
+          <button class="btn-reveal" id="btnReveal" onclick="showClue()">Show Clue</button>
+        </div>
+        <button class="btn-next-scramble" id="btnNextScramble" onclick="nextScrambleWord()">Next Word &#8594;</button>
+      </div>
+    </div>
+    <!-- /screen-scramble -->
+
+  </div>
+
+  <!-- RESULT OVERLAY -->
+  <div class="result-overlay" id="resultOverlay">
+    <div class="result-box">
+      <div class="result-icon" id="resultIcon">&#127881;</div>
+      <div class="result-title" id="resultTitle">Well Done!</div>
+      <div class="result-pts" id="resultPts">+10 pts</div>
+      <div class="result-sub" id="resultSub"></div>
+      <div class="result-btns">
+        <button class="btn-primary" onclick="goToSelect()">Back to Games</button>
+        <a href="dashboard.html" class="btn-secondary">Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // ───────────────────────────
+    // DAILY STATE (localStorage)
+    // ───────────────────────────
+    const TODAY_KEY = 'ww_games_' + new Date().toDateString();
+    let dailyPlayed = parseInt(localStorage.getItem(TODAY_KEY) || '0');
+    let totalPoints = 2400;
+    const MAX_DAILY = 3;
+    const GAME_PTS  = 10;
+
+    function saveDailyState() { localStorage.setItem(TODAY_KEY, dailyPlayed); }
+
+    function updateDailyUI() {
+      document.getElementById('dailyCountText').textContent = dailyPlayed + ' of 3 played today';
+      document.getElementById('dailyFill').style.width      = (dailyPlayed / MAX_DAILY * 100) + '%';
+      document.getElementById('ptsTodayPill').textContent   = '+' + (dailyPlayed * GAME_PTS) + ' pts earned today';
+      document.getElementById('navPoints').textContent      = totalPoints.toLocaleString('en-IN') + ' pts';
+      ['sorter','quiz','scramble'].forEach(id => {
+        const c = document.getElementById('card-' + id);
+        dailyPlayed >= MAX_DAILY ? c.classList.add('locked') : c.classList.remove('locked');
+      });
+    }
+
+    // ───────────────────────────
+    // SCREEN ROUTING
+    // ───────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+    function goBack() { clearInterval(quizTimerInterval); showScreen('select'); }
+    function goToSelect() {
+      document.getElementById('resultOverlay').classList.remove('show');
+      clearInterval(quizTimerInterval);
+      updateDailyUI();
+      showScreen('select');
+    }
+
+    function showResult(correct, total, gameName) {
+      const won = correct >= Math.ceil(total * 0.5);
+      document.getElementById('resultIcon').textContent  = won ? '\uD83C\uDF89' : '\uD83D\uDCAA';
+      document.getElementById('resultTitle').textContent = won ? 'Well Done!' : 'Keep Trying!';
+      if (won) {
+        dailyPlayed++;
+        totalPoints += GAME_PTS;
+        saveDailyState();
+        document.getElementById('resultPts').textContent   = '+' + GAME_PTS + ' pts';
+        document.getElementById('resultPts').style.color   = 'var(--green-light)';
+        document.getElementById('resultSub').textContent   = 'You scored ' + correct + '/' + total + ' in ' + gameName + '. Eco-points added to your account!';
+      } else {
+        document.getElementById('resultPts').textContent   = '+0 pts';
+        document.getElementById('resultPts').style.color   = 'var(--text-muted)';
+        document.getElementById('resultSub').textContent   = 'You scored ' + correct + '/' + total + '. Score at least 50% to earn points. Try again!';
+      }
+      document.getElementById('resultOverlay').classList.add('show');
+    }
+
+    function startGame(name) {
+      if (dailyPlayed >= MAX_DAILY) return;
+      if (name === 'sorter')   initSorter();
+      if (name === 'quiz')     initQuiz();
+      if (name === 'scramble') initScramble();
+      showScreen(name);
+    }
+
+    // ───────────────────────────
+    // RANDOMIZATION HELPER
+    // ───────────────────────────
+    function getRandomItems(pool, count) {
+      let shuffled = [...pool].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    }
+
+
+    // ═══════════════════════════
+    // GAME 1 — WASTE SORTER
+    // EXPANDED POOL: 55 items
+    // ═══════════════════════════
+    const sorterItemPool = [
+      // PLASTIC
+      { name: 'Plastic Bottle',      icon: '🧴', bin: 'plastic',  hint: 'Check for the recycle symbol' },
+      { name: 'Plastic Straw',        icon: '🥤', bin: 'plastic',  hint: 'Single-use plastic' },
+      { name: 'Plastic Bag',          icon: '🛍️', bin: 'plastic',  hint: 'Soft plastic — check local rules' },
+      { name: 'Plastic Cup',          icon: '🥛', bin: 'plastic',  hint: 'Disposable plastic drinkware' },
+      { name: 'Plastic Spoon',        icon: '🥄', bin: 'plastic',  hint: 'Single-use plastic cutlery' },
+      { name: 'Shampoo Bottle',       icon: '🧴', bin: 'plastic',  hint: 'Rinse and recycle' },
+      { name: 'Milk Jug',             icon: '🧃', bin: 'plastic',  hint: 'HDPE plastic — widely recyclable' },
+      { name: 'Yoghurt Container',    icon: '🫙', bin: 'plastic',  hint: 'Rinse before recycling' },
+      { name: 'Cling Wrap',           icon: '🌀', bin: 'plastic',  hint: 'Soft plastic — usually landfill' },
+      { name: 'Bubble Wrap',          icon: '🫧', bin: 'plastic',  hint: 'Soft plastic — drop-off required' },
+      // ORGANIC
+      { name: 'Banana Peel',          icon: '🍌', bin: 'organic',  hint: 'Food waste goes green' },
+      { name: 'Apple Core',           icon: '🍎', bin: 'organic',  hint: 'Biodegradable food waste' },
+      { name: 'Orange Peel',          icon: '🍊', bin: 'organic',  hint: 'Citrus peel composts well' },
+      { name: 'Vegetable Scraps',     icon: '🥦', bin: 'organic',  hint: 'Great compost material' },
+      { name: 'Coffee Grounds',       icon: '☕', bin: 'organic',  hint: 'Excellent compost additive' },
+      { name: 'Egg Shells',           icon: '🥚', bin: 'organic',  hint: 'Adds calcium to compost' },
+      { name: 'Bread Crust',          icon: '🍞', bin: 'organic',  hint: 'Food waste — avoid in open bins' },
+      { name: 'Rice Leftovers',       icon: '🍚', bin: 'organic',  hint: 'Cooked food scraps go organic' },
+      { name: 'Tea Bag',              icon: '🫖', bin: 'organic',  hint: 'Remove staple before composting' },
+      { name: 'Grass Clippings',      icon: '🌿', bin: 'organic',  hint: 'Garden waste is compostable' },
+      // PAPER
+      { name: 'Newspaper',            icon: '📰', bin: 'paper',    hint: 'Dry paper only' },
+      { name: 'Cardboard Box',        icon: '📦', bin: 'paper',    hint: 'Flatten before binning' },
+      { name: 'Office Paper',         icon: '📄', bin: 'paper',    hint: 'White paper is highly recyclable' },
+      { name: 'Paper Cup',            icon: '🥤', bin: 'paper',    hint: 'Check for plastic lining first' },
+      { name: 'Milk Carton',          icon: '🧃', bin: 'paper',    hint: 'Tetra pak — rinse and recycle' },
+      { name: 'Magazine',             icon: '📓', bin: 'paper',    hint: 'Glossy paper is recyclable' },
+      { name: 'Tissue Paper',         icon: '🧻', bin: 'organic',  hint: 'Used tissue is organic waste' },
+      { name: 'Envelope',             icon: '✉️', bin: 'paper',    hint: 'Remove plastic window first' },
+      { name: 'Paper Bag',            icon: '🛍️', bin: 'paper',    hint: 'Kraft paper bags are recyclable' },
+      { name: 'Cereal Box',           icon: '📦', bin: 'paper',    hint: 'Remove inner plastic liner' },
+      // METAL
+      { name: 'Aluminium Can',        icon: '🥫', bin: 'metal',    hint: 'Rinse before recycling' },
+      { name: 'Steel Fork',           icon: '🍴', bin: 'metal',    hint: 'Cutlery is recyclable metal' },
+      { name: 'Tin Can',              icon: '🥫', bin: 'metal',    hint: 'Food-grade steel — recyclable' },
+      { name: 'Metal Lid',            icon: '🪙', bin: 'metal',    hint: 'Screw-top lids are metal' },
+      { name: 'Aluminium Foil',       icon: '🌯', bin: 'metal',    hint: 'Scrunch into a ball first' },
+      { name: 'Soda Can',             icon: '🥤', bin: 'metal',    hint: 'Aluminium — highly valuable' },
+      { name: 'Wire Hanger',          icon: '🪝', bin: 'metal',    hint: 'Metal hanger goes to scrap' },
+      { name: 'Nail or Screw',        icon: '🔩', bin: 'metal',    hint: 'Small metal items — scrap bin' },
+      { name: 'Steel Wool',           icon: '🧹', bin: 'metal',    hint: 'Metal cleaning pad' },
+      { name: 'Metal Spoon',          icon: '🥄', bin: 'metal',    hint: 'Stainless steel is recyclable' },
+      // GLASS
+      { name: 'Glass Jar',            icon: '🫙', bin: 'glass',    hint: 'Remove lids first' },
+      { name: 'Glass Bottle',         icon: '🍾', bin: 'glass',    hint: 'Rinse before recycling' },
+      { name: 'Wine Glass',           icon: '🍷', bin: 'glass',    hint: 'Handle separately — fragile' },
+      { name: 'Glass Vase',           icon: '🏺', bin: 'glass',    hint: 'Remove any stickers' },
+      { name: 'Pickle Jar',           icon: '🫙', bin: 'glass',    hint: 'Rinse brine before recycling' },
+      { name: 'Glass Perfume Bottle', icon: '🧴', bin: 'glass',    hint: 'Remove pump before recycling' },
+      { name: 'Beer Bottle',          icon: '🍺', bin: 'glass',    hint: 'Clear, brown or green glass' },
+      { name: 'Sauce Bottle',         icon: '🍶', bin: 'glass',    hint: 'Rinse residue thoroughly' },
+      // EWASTE
+      { name: 'Old Smartphone',       icon: '📱', bin: 'ewaste',   hint: 'Has electronic components' },
+      { name: 'Broken Earphones',     icon: '🎧', bin: 'ewaste',   hint: 'Electronic waste' },
+      { name: 'Laptop Battery',       icon: '🔋', bin: 'ewaste',   hint: 'Lithium batteries — drop-off only' },
+      { name: 'Broken Charger',       icon: '🔌', bin: 'ewaste',   hint: 'Electronic cable waste' },
+      { name: 'Old Remote Control',   icon: '📺', bin: 'ewaste',   hint: 'Remove batteries first' },
+      { name: 'CFL Bulb',             icon: '💡', bin: 'ewaste',   hint: 'Contains mercury — hazardous' },
+      { name: 'USB Drive',            icon: '💾', bin: 'ewaste',   hint: 'Small electronics need proper disposal' },
+      { name: 'Keyboard',             icon: '⌨️', bin: 'ewaste',   hint: 'Electronic input device' },
+      { name: 'Ink Cartridge',        icon: '🖨️', bin: 'ewaste',   hint: 'Return to manufacturer if possible' },
+    ];
+
+    const BIN_ORDER = ['plastic','organic','paper','metal','glass','ewaste'];
+    let sorterItems = [];
+    let sorterQ = 0, sorterCorrect = 0, sorterLocked = false;
+
+    function initSorter() {
+      sorterItems = getRandomItems(sorterItemPool, 10);
+      sorterQ = 0; sorterCorrect = 0; sorterLocked = false;
+      renderSorter();
+    }
+
+    function renderSorter() {
+      if (sorterQ >= sorterItems.length) { showResult(sorterCorrect, sorterItems.length, 'Waste Sorter'); return; }
+      const item = sorterItems[sorterQ];
+      document.getElementById('sorterIcon').textContent         = item.icon;
+      document.getElementById('sorterItemName').textContent     = item.name;
+      document.getElementById('sorterItemHint').textContent     = item.hint;
+      document.getElementById('sorterRoundLabel').textContent   = 'Round ' + (sorterQ+1) + ' of ' + sorterItems.length;
+      document.getElementById('sorterProgFill').style.width     = (sorterQ / sorterItems.length * 100) + '%';
+      document.getElementById('sorterCorrectLabel').textContent = sorterCorrect + ' correct';
+      document.getElementById('sorterScore').textContent        = sorterCorrect + ' / ' + sorterItems.length;
+      document.getElementById('sorterFeedback').textContent     = '';
+      BIN_ORDER.forEach(b => { document.getElementById('bin-'+b).classList.remove('correct','wrong'); });
+      sorterLocked = false;
+    }
+
+    function checkBin(bin) {
+      if (sorterLocked) return;
+      sorterLocked = true;
+      const item = sorterItems[sorterQ];
+      const fb   = document.getElementById('sorterFeedback');
+      if (bin === item.bin) {
+        document.getElementById('bin-'+bin).classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = 'var(--green-light)';
+        sorterCorrect++;
+      } else {
+        document.getElementById('bin-'+bin).classList.add('wrong');
+        document.getElementById('bin-'+item.bin).classList.add('correct');
+        fb.textContent = 'Wrong — it goes in ' + item.bin;
+        fb.style.color = 'var(--red-light)';
+      }
+      sorterQ++;
+      setTimeout(renderSorter, 1100);
+    }
+
+
+    // ═══════════════════════════
+    // GAME 2 — ECO QUIZ
+    // EXPANDED POOL: 100 questions
+    // ═══════════════════════════
+    const quizPool = [
+      // ── RECYCLING & BINS ──
+      { q: 'Which colour bin is typically used for dry recyclable waste (plastic, paper, metal) in India?',
+        opts: ['Blue', 'Green', 'Red', 'Black'], correct: 0,
+        exp: 'Blue bins are for dry recyclable waste. Green bins are for wet/organic waste. This is the standard two-bin system used across India.' },
+      { q: 'Which bin should you use for wet/food waste in India\'s segregation system?',
+        opts: ['Green', 'Blue', 'Yellow', 'Red'], correct: 0,
+        exp: 'Green bins collect wet organic waste like food scraps and garden waste, which can then be composted or sent to biogas plants.' },
+      { q: 'What does the recycling symbol with a number inside a triangle indicate on plastic?',
+        opts: ['The type of plastic resin used', 'The weight of the item', 'The manufacturer code', 'The year of production'], correct: 0,
+        exp: 'The resin identification code (1–7) tells you what type of plastic the item is made from, helping recycling facilities sort materials correctly.' },
+      { q: 'Which plastic type (by resin code) is most widely accepted for recycling?',
+        opts: ['PET (code 1)', 'PVC (code 3)', 'Polystyrene (code 6)', 'Other (code 7)'], correct: 0,
+        exp: 'PET (Polyethylene Terephthalate) coded as #1 — used in water bottles — is the most widely recycled plastic globally.' },
+      { q: 'Before placing items in the recycling bin, you should:',
+        opts: ['Rinse them to remove food residue', 'Leave them greasy for easier processing', 'Shred all paper items', 'Freeze organic material inside'], correct: 0,
+        exp: 'Food residue contaminates entire batches of recyclables. Rinsing containers ensures materials can actually be processed by recycling facilities.' },
+      { q: 'Which of the following CANNOT typically be recycled in a kerbside bin?',
+        opts: ['Pizza box soaked in grease', 'Clean aluminium can', 'Rinsed glass bottle', 'Flattened cardboard'], correct: 0,
+        exp: 'Greasy pizza boxes contaminate paper recycling. The cardboard absorbs grease, making it impossible to separate fibres during processing.' },
+      { q: 'Aluminium cans are highly prized for recycling because:',
+        opts: ['Recycling them uses 95% less energy than making new ones', 'They are the rarest metal', 'They decompose fastest', 'They are the heaviest material'], correct: 0,
+        exp: 'Recycling aluminium saves up to 95% of the energy needed to produce virgin aluminium from bauxite ore, making it one of the most energy-efficient recyclables.' },
+      { q: 'How many times can glass be recycled without loss of quality?',
+        opts: ['Infinitely', 'Only 3 times', 'Up to 10 times', 'Once'], correct: 0,
+        exp: 'Glass is 100% recyclable and can be recycled endlessly without losing purity or quality, unlike most plastics.' },
+      { q: 'What happens to most plastic that ends up in recycling bins globally?',
+        opts: ['It is downcycled into lower-grade products', 'It becomes new bottles', 'It is fully regenerated', 'It is composted'], correct: 0,
+        exp: 'Most plastic cannot be recycled into the same product. It is downcycled into lower-value items like park benches or carpets, and eventually ends up in landfill.' },
+      { q: 'Tetra Pak cartons (juice/milk boxes) should be placed in the:',
+        opts: ['Paper/dry waste bin (after rinsing)', 'Organic waste bin', 'E-waste bin', 'Hazardous waste bin'], correct: 0,
+        exp: 'Tetra Pak cartons are made of layers of paper, plastic, and aluminium. After rinsing, they go in the dry recyclables bin where special facilities separate the layers.' },
+
+      // ── WASTE STATISTICS ──
+      { q: 'What percentage of all plastic ever produced has actually been recycled globally?',
+        opts: ['About 9%', 'About 25%', 'About 45%', 'About 60%'], correct: 0,
+        exp: 'Only about 9% of all plastic ever produced has been recycled. The rest ends up in landfills, oceans, or is incinerated.' },
+      { q: 'How much food is wasted globally every year (approximate weight)?',
+        opts: ['1.3 billion tonnes', '500 million tonnes', '200 million tonnes', '50 million tonnes'], correct: 0,
+        exp: 'According to the UN FAO, about 1.3 billion tonnes of food is wasted annually — roughly one-third of all food produced for human consumption.' },
+      { q: 'What percentage of marine litter is estimated to be plastic?',
+        opts: ['Over 80%', 'About 30%', 'About 50%', 'About 10%'], correct: 0,
+        exp: 'Over 80% of marine litter is plastic. About 8 million metric tonnes of plastic enter the oceans every year.' },
+      { q: 'India generates approximately how many million tonnes of solid waste per year?',
+        opts: ['62 million tonnes', '10 million tonnes', '200 million tonnes', '5 million tonnes'], correct: 0,
+        exp: 'India generates approximately 62 million tonnes of municipal solid waste per year, of which only about 43 million tonnes is collected and a fraction is treated.' },
+      { q: 'What fraction of India\'s collected waste is processed or treated?',
+        opts: ['Less than 30%', 'About 60%', 'Almost 80%', 'All of it'], correct: 0,
+        exp: 'Less than 30% of India\'s collected waste is treated. The majority ends up in open dumps or landfills without proper processing.' },
+
+      // ── BIODEGRADABILITY ──
+      { q: 'Which of these materials is NOT biodegradable?',
+        opts: ['Styrofoam cup', 'Banana peel', 'Cotton cloth', 'Cardboard'], correct: 0,
+        exp: 'Styrofoam (expanded polystyrene) is not biodegradable and persists in the environment for hundreds of years.' },
+      { q: 'Approximately how long does a plastic bag take to decompose in a landfill?',
+        opts: ['20 years', '6 months', '1 year', '100 years'], correct: 0,
+        exp: 'A typical plastic bag takes around 20 years to decompose, though some estimates suggest up to 1,000 years for denser plastics.' },
+      { q: 'How long does a glass bottle take to decompose in a landfill?',
+        opts: ['Up to 1 million years', 'About 50 years', 'About 500 years', '10 years'], correct: 0,
+        exp: 'Glass is one of the most durable materials on Earth. A glass bottle in a landfill can persist for up to 1 million years.' },
+      { q: 'Which material decomposes the fastest in a landfill?',
+        opts: ['Vegetable peel (days to weeks)', 'Paper (a few months)', 'Aluminium (80–100 years)', 'Plastic bottle (450 years)'], correct: 0,
+        exp: 'Vegetable peels and other organic matter decompose within days to weeks, while plastic and glass persist for centuries or longer.' },
+      { q: 'What does "biodegradable" mean?',
+        opts: ['Can be broken down by bacteria or other organisms', 'Can be recycled into new products', 'Burns without toxic smoke', 'Is made from natural materials only'], correct: 0,
+        exp: 'Biodegradable materials can be broken down by bacteria, fungi, or other living organisms into natural substances like water, CO₂, and biomass.' },
+
+      // ── COMPOSTING ──
+      { q: 'What is composting?',
+        opts: ['Decomposing organic waste into fertiliser', 'Burning waste to generate energy', 'Sorting plastic by type', 'Compressing waste into bales'], correct: 0,
+        exp: 'Composting is the natural process of recycling organic matter like food scraps into a rich fertiliser that improves soil health.' },
+      { q: 'Which of these should NOT be added to a home compost bin?',
+        opts: ['Meat and dairy products', 'Fruit peels', 'Vegetable scraps', 'Dry leaves'], correct: 0,
+        exp: 'Meat and dairy attract pests, create odour, and can introduce pathogens. Stick to plant-based food scraps and garden waste for home composting.' },
+      { q: 'What is vermicomposting?',
+        opts: ['Using worms to break down organic waste', 'A type of industrial incineration', 'Composting in sealed containers', 'Treating hazardous waste chemically'], correct: 0,
+        exp: 'Vermicomposting uses specific worm species (like red wigglers) to accelerate decomposition of organic matter, producing high-quality castings (vermicompost).' },
+      { q: 'Compost is ready to use when it:',
+        opts: ['Smells earthy and crumbles like dark soil', 'Is steaming hot inside', 'Still has visible food chunks', 'Smells strongly of ammonia'], correct: 0,
+        exp: 'Finished compost looks like dark, crumbly soil and smells earthy — similar to a forest floor. It should have no recognisable food scraps.' },
+      { q: 'What are the two main types of materials needed for good composting?',
+        opts: ['"Browns" (carbon-rich) and "greens" (nitrogen-rich)', 'Wet waste and dry plastic', 'Glass and metal', 'Paper and fabric'], correct: 0,
+        exp: 'Good compost needs carbon-rich "browns" (dead leaves, cardboard) and nitrogen-rich "greens" (food scraps, grass). The ideal ratio is roughly 30:1 carbon to nitrogen.' },
+
+      // ── SUSTAINABILITY & 3Rs ──
+      { q: 'The "3 Rs" of waste management — what is the correct order of priority?',
+        opts: ['Reduce, Reuse, Recycle', 'Recycle, Reuse, Reduce', 'Reuse, Reduce, Recycle', 'Recycle, Reduce, Reuse'], correct: 0,
+        exp: 'Reduce comes first — producing less waste is the most impactful step. Reuse comes second, and Recycling is the last resort.' },
+      { q: 'What does "zero waste" mean as a philosophy?',
+        opts: ['Designing products and systems so nothing ends up in landfill', 'Never buying any products', 'Only using recycled materials', 'Burning all waste cleanly'], correct: 0,
+        exp: 'Zero waste is a design philosophy that aims to eliminate waste entirely through better product design, reuse, and composting — so nothing goes to landfill or incineration.' },
+      { q: 'What is "upcycling"?',
+        opts: ['Transforming waste into something of higher value', 'Sending waste to higher-tech recyclers', 'Reducing waste at the source', 'Burning waste to generate electricity'], correct: 0,
+        exp: 'Upcycling involves creatively reusing discarded materials to create a new product of greater value or quality, unlike downcycling which reduces material quality.' },
+      { q: 'A circular economy aims to:',
+        opts: ['Keep materials in use as long as possible', 'Maximise production and disposal', 'Export waste to other countries', 'Build more landfills'], correct: 0,
+        exp: 'A circular economy keeps resources in use for as long as possible, extracts maximum value, then recovers and regenerates products and materials at end of life.' },
+      { q: 'Which of the following is the BEST way to reduce plastic waste?',
+        opts: ['Carry a reusable bag and bottle', 'Use biodegradable plastic bags instead', 'Recycle all plastic items', 'Buy products in bulk plastic containers'], correct: 0,
+        exp: 'The most impactful action is refusing single-use plastic altogether. Reusable bags and bottles prevent waste from being created in the first place.' },
+
+      // ── E-WASTE ──
+      { q: 'E-waste must be disposed of at:',
+        opts: ['Authorised e-waste recycling centres', 'Any regular dustbin', 'Open ground or fields', 'Buried in the backyard'], correct: 0,
+        exp: 'E-waste contains hazardous materials like lead and mercury. It must go to authorised recycling facilities to be processed safely.' },
+      { q: 'Which of these is classified as e-waste?',
+        opts: ['A broken mobile phone', 'A used newspaper', 'An empty glass bottle', 'A plastic bag'], correct: 0,
+        exp: 'Mobile phones contain electronic components and hazardous materials. They must be disposed of through certified e-waste channels, not ordinary bins.' },
+      { q: 'Why is burning e-waste dangerous?',
+        opts: ['It releases toxic fumes including lead and dioxins', 'It creates too much ash', 'It generates electricity inefficiently', 'It produces harmless steam'], correct: 0,
+        exp: 'Burning e-waste releases highly toxic chemicals including lead, mercury, cadmium, and dioxins — posing serious risks to human health and the environment.' },
+      { q: 'What valuable materials can be recovered from e-waste?',
+        opts: ['Gold, silver, copper, and palladium', 'Only plastic and glass', 'Only steel', 'Paper and aluminium foil'], correct: 0,
+        exp: 'Electronic devices contain precious metals. One tonne of smartphones contains more gold than one tonne of gold ore, making e-waste recovery economically valuable.' },
+      { q: 'India\'s e-waste rules require producers to take back their old products under what system?',
+        opts: ['Extended Producer Responsibility (EPR)', 'Voluntary Buyback Scheme', 'Government Landfill Directive', 'Consumer Pay Policy'], correct: 0,
+        exp: 'Extended Producer Responsibility (EPR) makes manufacturers financially and physically responsible for collecting and recycling their products at end of life.' },
+
+      // ── PLASTIC POLLUTION ──
+      { q: 'What are microplastics?',
+        opts: ['Plastic fragments smaller than 5mm', 'A biodegradable type of plastic', 'Plastic used in medicine', 'A type of recycled plastic'], correct: 0,
+        exp: 'Microplastics are plastic fragments or particles smaller than 5mm. They originate from the breakdown of larger plastics and from products like microbeads in cosmetics.' },
+      { q: 'Which ocean has the largest accumulation of floating plastic debris?',
+        opts: ['Pacific Ocean (Great Pacific Garbage Patch)', 'Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean'], correct: 0,
+        exp: 'The Great Pacific Garbage Patch between Hawaii and California is the world\'s largest accumulation of ocean plastic, spanning an estimated 1.6 million square kilometres.' },
+      { q: 'Single-use plastics are a problem because:',
+        opts: ['They are used once but persist for centuries', 'They are too expensive to produce', 'They cannot be burned', 'They are too heavy to transport'], correct: 0,
+        exp: 'Single-use plastics like straws, bags, and cups are designed for brief use but take hundreds of years to break down, causing lasting pollution.' },
+      { q: 'What year did India ban certain single-use plastic items?',
+        opts: ['2022', '2018', '2015', '2020'], correct: 0,
+        exp: 'India implemented a nationwide ban on identified single-use plastic items from July 1, 2022, targeting items like plastic straws, cutlery, and polystyrene.' },
+      { q: 'What is "plastic leakage"?',
+        opts: ['Plastic entering natural environments like oceans', 'Plastic containers that crack and leak', 'Plastic lost during manufacturing', 'Liquid leaking from plastic bags'], correct: 0,
+        exp: 'Plastic leakage refers to plastic waste that escapes waste management systems and enters the natural environment, especially waterways and oceans.' },
+
+      // ── LANDFILLS & WASTE TREATMENT ──
+      { q: 'What gas is primarily produced by decomposing organic waste in landfills?',
+        opts: ['Methane (CH₄)', 'Oxygen (O₂)', 'Nitrogen (N₂)', 'Carbon dioxide only'], correct: 0,
+        exp: 'Decomposing organic waste in landfills produces methane — a greenhouse gas over 80 times more potent than CO₂ in the short term.' },
+      { q: 'What is a sanitary landfill?',
+        opts: ['An engineered facility that isolates waste from the environment', 'An open dump with a fence', 'A recycling centre', 'A composting facility'], correct: 0,
+        exp: 'A sanitary landfill is an engineered waste disposal facility with liners to prevent leachate seeping into groundwater, plus systems to capture landfill gas.' },
+      { q: 'What is "leachate" in the context of landfills?',
+        opts: ['Toxic liquid formed when water filters through waste', 'Methane gas released from landfills', 'The weight of compacted waste', 'A type of compost from landfills'], correct: 0,
+        exp: 'Leachate is a toxic liquid produced when rainwater percolates through landfill waste, picking up pollutants. It can contaminate groundwater if not managed properly.' },
+      { q: 'Waste-to-energy (WtE) plants:',
+        opts: ['Burn non-recyclable waste to generate electricity', 'Compost organic waste into energy', 'Convert plastic into diesel only', 'Use solar panels on landfill covers'], correct: 0,
+        exp: 'Waste-to-energy plants incinerate residual non-recyclable waste at high temperatures to generate electricity, while capturing emissions. They are a last resort after reduce, reuse, and recycle.' },
+      { q: 'Which type of waste management is generally considered LEAST preferred in the waste hierarchy?',
+        opts: ['Landfilling', 'Reusing', 'Composting', 'Reducing consumption'], correct: 0,
+        exp: 'In the waste management hierarchy, landfilling is the least preferred option. The hierarchy prioritises: Reduce → Reuse → Recycle → Recover → Dispose.' },
+
+      // ── WATER & HAZARDOUS WASTE ──
+      { q: 'Used cooking oil should be:',
+        opts: ['Collected and sent to biodiesel producers', 'Poured down the drain', 'Mixed with regular garbage', 'Buried in the garden'], correct: 0,
+        exp: 'Used cooking oil can block drains and pollute water. It should be collected and given to certified collectors who convert it into biodiesel or soap.' },
+      { q: 'Old medicines and pharmaceuticals should be disposed of by:',
+        opts: ['Returning to pharmacy take-back programmes', 'Flushing down the toilet', 'Throwing in regular trash', 'Burning at home'], correct: 0,
+        exp: 'Flushing medicines pollutes waterways and harms aquatic life. Many pharmacies offer take-back programmes to safely destroy unused medicines.' },
+      { q: 'Used batteries should be:',
+        opts: ['Dropped off at designated collection points', 'Thrown in regular bins', 'Buried in soil', 'Washed and thrown in organic bins'], correct: 0,
+        exp: 'Batteries contain toxic chemicals like cadmium, lead, and lithium. They must go to designated e-waste or battery drop-off points for safe recycling.' },
+      { q: 'Paint and solvents are classified as:',
+        opts: ['Hazardous household waste', 'Organic waste', 'Recyclable dry waste', 'Inert landfill waste'], correct: 0,
+        exp: 'Paint, solvents, pesticides, and similar chemicals are hazardous household waste. They must be taken to special collection events or hazardous waste facilities.' },
+      { q: 'Which organisation oversees hazardous waste management rules in India?',
+        opts: ['Central Pollution Control Board (CPCB)', 'ISRO', 'Reserve Bank of India', 'Ministry of Education'], correct: 0,
+        exp: 'The Central Pollution Control Board (CPCB) under the Ministry of Environment, Forest and Climate Change regulates hazardous waste management in India.' },
+
+      // ── ENVIRONMENT & CLIMATE ──
+      { q: 'What is the main greenhouse gas produced by decomposing food waste?',
+        opts: ['Methane', 'Nitrogen', 'Argon', 'Helium'], correct: 0,
+        exp: 'When food waste decomposes in oxygen-deprived conditions (like landfills), it produces methane — a potent greenhouse gas contributing to climate change.' },
+      { q: 'Reducing food waste is important because:',
+        opts: ['Producing food uses enormous resources including water and land', 'Food is cheap and easy to produce', 'Waste trucks emit no emissions', 'Landfills break down food instantly'], correct: 0,
+        exp: 'Food production uses vast amounts of water, land, and energy. Wasting food wastes all those embedded resources, and decomposing food in landfills emits methane.' },
+      { q: 'What is the carbon footprint of waste?',
+        opts: ['Greenhouse gases emitted during waste production, transport, and disposal', 'The physical weight of all waste generated', 'Emissions from recycling plants only', 'CO₂ absorbed by landfills'], correct: 0,
+        exp: 'The carbon footprint of waste includes all greenhouse gas emissions throughout the lifecycle of a product — from manufacturing to disposal — plus emissions from decomposing waste.' },
+      { q: 'What is "extended producer responsibility"?',
+        opts: ['Making manufacturers responsible for end-of-life product disposal', 'Extending factory working hours', 'Producing more durable goods', 'Requiring consumers to pay disposal fees'], correct: 0,
+        exp: 'Extended Producer Responsibility (EPR) is a policy approach where producers are responsible for the entire lifecycle of their products, including collection and recycling at end of life.' },
+      { q: 'Ocean plastic pollution harms marine life because:',
+        opts: ['Animals mistake plastic for food and get entangled', 'Plastic dissolves into acidic toxins', 'Plastic blocks sunlight entirely', 'Plastic adds nutrients to the ocean'], correct: 0,
+        exp: 'Millions of marine animals die each year after ingesting plastic or becoming entangled. Plastic mimics the appearance of prey like jellyfish and fish eggs.' },
+
+      // ── ORGANIC WASTE & FOOD ──
+      { q: 'Organic waste like food scraps should ideally be:',
+        opts: ['Composted or sent to a biogas plant', 'Burned with other dry waste', 'Mixed with plastic for recycling', 'Flushed down the drain'], correct: 0,
+        exp: 'Food and organic waste is best composted at home or sent to biogas plants where it generates clean energy and fertiliser.' },
+      { q: 'What is a biogas plant?',
+        opts: ['A facility that converts organic waste into methane gas for cooking/electricity', 'A solar energy farm', 'A plastic recycling facility', 'A water treatment plant'], correct: 0,
+        exp: 'Biogas plants use anaerobic digestion to break down organic waste and produce biogas (methane), which can be used for cooking, heating, or generating electricity.' },
+      { q: 'Which of the following is a "zero-waste" shopping strategy?',
+        opts: ['Buying in bulk using your own containers', 'Buying individually wrapped single servings', 'Purchasing items online with extra packaging', 'Avoiding fresh produce'], correct: 0,
+        exp: 'Buying in bulk with reusable containers eliminates packaging waste entirely — one of the most effective zero-waste shopping strategies.' },
+      { q: 'What is the "best before" vs "use by" difference in food labels?',
+        opts: ['"Best before" is quality, "use by" is safety', 'They mean exactly the same thing', '"Use by" is a suggestion only', '"Best before" means throw it out that day'], correct: 0,
+        exp: '"Best before" indicates peak quality — the food may still be safe after this date. "Use by" is a safety date — food should not be consumed after this date.' },
+      { q: 'What fraction of global greenhouse gas emissions comes from food waste?',
+        opts: ['About 8–10%', 'Less than 1%', 'Over 50%', 'About 25%'], correct: 0,
+        exp: 'Food waste accounts for roughly 8–10% of global greenhouse gas emissions. If food waste were a country, it would be the third-largest emitter after USA and China.' },
+
+      // ── PAPER & TEXTILE ──
+      { q: 'Shredded paper is generally:',
+        opts: ['Hard to recycle — better composted', 'Easier to recycle than whole sheets', 'Classified as organic waste', 'Classified as hazardous waste'], correct: 0,
+        exp: 'Shredded paper has very short fibres, making it difficult to process at recycling facilities. It is better added to compost as a brown carbon source.' },
+      { q: 'Old clothing and textiles should be:',
+        opts: ['Donated, repaired, or sent to textile recyclers', 'Thrown in regular bins', 'Burned at home', 'Buried in the garden'], correct: 0,
+        exp: 'The fashion industry is one of the most polluting. Old clothes should be donated to charity, repaired, or sent to certified textile recyclers to avoid landfill.' },
+      { q: 'What percentage of textiles globally are currently recycled into new fibres?',
+        opts: ['Less than 1%', 'About 20%', 'About 40%', 'About 60%'], correct: 0,
+        exp: 'Less than 1% of clothing is recycled into new clothing fibres. Most "recycled" clothing is downcycled into rags or insulation.' },
+      { q: 'Which paper product is NOT typically recyclable?',
+        opts: ['Wax-coated paper cups', 'Newspaper', 'Cardboard', 'Office printer paper'], correct: 0,
+        exp: 'Wax or plastic-lined paper cups cannot be recycled in standard paper streams because the coating cannot be separated from the paper fibres.' },
+
+      // ── WATER POLLUTION ──
+      { q: 'What is "nurdle" pollution?',
+        opts: ['Tiny plastic pellets that are the raw material for plastic products', 'Microplastics from car tyres', 'Chemical runoff from farms', 'Spilled motor oil in waterways'], correct: 0,
+        exp: 'Nurdles are pre-production plastic pellets — the raw material used to make plastic products. Billions are spilled into oceans each year during transport.' },
+      { q: 'Flushing wet wipes down the toilet causes:',
+        opts: ['Sewer blockages called "fatbergs"', 'No harm as they dissolve', 'Clean pipes due to cleaning agents', 'Water to taste like soap'], correct: 0,
+        exp: 'Wet wipes do not dissolve like toilet paper. They accumulate in sewers, combining with fats and oils to form massive "fatbergs" that block infrastructure.' },
+      { q: 'The most sustainable way to manage stormwater runoff is:',
+        opts: ['Green infrastructure like rain gardens and permeable pavements', 'Building bigger drains', 'Using more concrete roads', 'Pumping it directly to the sea'], correct: 0,
+        exp: 'Green infrastructure like rain gardens, bioswales, and permeable pavements allow water to soak into the ground naturally, reducing pollution and flooding.' },
+
+      // ── ENERGY & RENEWABLES ──
+      { q: 'How does waste reduction help fight climate change?',
+        opts: ['Less waste means less methane from landfills and less energy for manufacturing', 'It has no impact on climate', 'Only recycling affects climate', 'Landfills absorb CO₂'], correct: 0,
+        exp: 'Reducing waste cuts methane from landfills, reduces energy needed for manufacturing virgin materials, and lowers transport emissions from waste collection.' },
+      { q: 'What is waste-to-energy incineration best used for?',
+        opts: ['Non-recyclable, non-compostable residual waste', 'All types of household waste', 'Recyclable plastics and paper', 'Food waste and compostable material'], correct: 0,
+        exp: 'Waste-to-energy incineration should only process residual waste — materials that cannot be recycled or composted. Burning recyclables wastes valuable resources.' },
+      { q: 'Landfill gas capture systems:',
+        opts: ['Collect methane from landfills to use as energy', 'Prevent waste from escaping landfills', 'Compress waste more efficiently', 'Add oxygen to speed decomposition'], correct: 0,
+        exp: 'Landfill gas capture systems collect methane produced by decomposing waste and can convert it into electricity or heat — reducing greenhouse gas emissions.' },
+      { q: 'What is "embodied energy" in a product?',
+        opts: ['Energy used to produce, transport, and dispose of it', 'Energy stored inside batteries', 'Solar energy captured by the product', 'Energy saved by recycling it'], correct: 0,
+        exp: 'Embodied energy is the total energy required across a product\'s life — from raw material extraction, manufacturing, and transport to eventual disposal.' },
+
+      // ── POLICY & AWARENESS ──
+      { q: 'World Environment Day is observed on:',
+        opts: ['June 5', 'April 22', 'March 21', 'August 12'], correct: 0,
+        exp: 'World Environment Day is celebrated on June 5 every year. It is the UN\'s principal vehicle for encouraging environmental awareness and action.' },
+      { q: 'Earth Day is observed on:',
+        opts: ['April 22', 'June 5', 'March 22', 'December 11'], correct: 0,
+        exp: 'Earth Day is observed on April 22 every year since 1970, mobilising over a billion people in more than 193 countries around environmental issues.' },
+      { q: 'The Swachh Bharat Mission in India primarily targets:',
+        opts: ['Open defecation elimination and solid waste management', 'Air pollution reduction only', 'Ocean plastic cleanup', 'Industrial hazardous waste'], correct: 0,
+        exp: 'Swachh Bharat Mission (Clean India Mission) was launched in 2014 to eliminate open defecation and improve solid waste management across urban and rural India.' },
+      { q: 'The Basel Convention deals with:',
+        opts: ['Control of transboundary movement of hazardous waste', 'Climate change targets', 'Ocean plastic treaties', 'Nuclear waste disposal'], correct: 0,
+        exp: 'The Basel Convention is an international treaty that controls the movement of hazardous waste between nations, especially to prevent dumping in developing countries.' },
+      { q: 'Which of the following best describes "greenwashing"?',
+        opts: ['Companies making false or exaggerated environmental claims', 'Washing clothes with eco-friendly detergent', 'Painting factories green', 'Cleaning up oil spills'], correct: 0,
+        exp: 'Greenwashing occurs when companies mislead consumers by overstating the environmental benefits of their products, making them appear more sustainable than they are.' },
+
+      // ── NATURE & ECOSYSTEMS ──
+      { q: 'How do trees help in waste management?',
+        opts: ['They absorb CO₂ produced by waste decomposition', 'They directly sort waste', 'They convert plastic into organic matter', 'They produce clean water from waste'], correct: 0,
+        exp: 'Trees absorb CO₂ and other pollutants, helping offset greenhouse gas emissions from waste decomposition and waste transport. Urban trees also improve air quality.' },
+      { q: 'Waste dumping in rivers and lakes primarily causes:',
+        opts: ['Eutrophication, oxygen depletion, and death of aquatic life', 'Increased fish populations', 'Cleaner drinking water downstream', 'Faster water flow'], correct: 0,
+        exp: 'Dumping waste causes eutrophication — excess nutrients trigger algae blooms that deplete oxygen, creating dead zones where aquatic life cannot survive.' },
+      { q: 'What is "bioremediation"?',
+        opts: ['Using microorganisms to clean up contaminated environments', 'Growing plants in landfills', 'Biological incineration of waste', 'Using worms to sort garbage'], correct: 0,
+        exp: 'Bioremediation uses bacteria, fungi, or plants to break down pollutants in contaminated soil or water, offering a natural and cost-effective cleanup approach.' },
+      { q: 'Which sector generates the most hazardous waste in India?',
+        opts: ['Chemical and pharmaceutical industries', 'Households', 'Agriculture', 'Tourism'], correct: 0,
+        exp: 'Chemical, pharmaceutical, textile, and heavy industries are the largest generators of hazardous waste in India, requiring specialised treatment and disposal.' },
+      { q: 'What is the term for the area around a landfill affected by pollution?',
+        opts: ['Contamination plume', 'Waste shadow', 'Leachate field', 'Methane cloud'], correct: 0,
+        exp: 'A contamination plume is the area of soil, groundwater, or air that has been impacted by pollutants leaking from a landfill or other waste site.' },
+
+      // ── CONSUMER BEHAVIOUR ──
+      { q: 'The most sustainable packaging choice when buying groceries is:',
+        opts: ['Bringing your own reusable bags and containers', 'Choosing items in recyclable plastic', 'Buying items with compostable packaging', 'Selecting the smallest packaging available'], correct: 0,
+        exp: 'Reusable bags and containers prevent packaging waste from being created at all. No packaging is always better than any type of packaging.' },
+      { q: 'Which practice extends the life of a product the most?',
+        opts: ['Repairing it when broken', 'Recycling it immediately', 'Buying a newer model', 'Donating it after one use'], correct: 0,
+        exp: 'Repairing products keeps them in use longest, delaying replacement and avoiding the environmental cost of manufacturing a new item.' },
+      { q: 'What is a "product lifecycle"?',
+        opts: ['All stages from raw material extraction to end-of-life disposal', 'The warranty period of a product', 'How long a store sells an item', 'The time between factory and shelf'], correct: 0,
+        exp: 'A product lifecycle encompasses all stages: raw material extraction, manufacturing, distribution, use, and final disposal or recycling.' },
+      { q: 'Why is buying second-hand clothing considered sustainable?',
+        opts: ['It extends product life and avoids new manufacturing emissions', 'Second-hand clothes are always cheaper', 'Old fabrics decompose faster', 'It reduces water usage at home'], correct: 0,
+        exp: 'Buying second-hand keeps clothing in use longer, avoiding the enormous water, energy, and chemical inputs required to manufacture new garments.' },
+      { q: 'Digital receipts instead of paper receipts are better because:',
+        opts: ['Thermal paper receipts contain BPA and cannot be recycled', 'Digital devices use no energy', 'Paper receipts are classified as e-waste', 'Thermal paper composts quickly'], correct: 0,
+        exp: 'Most paper receipts are printed on thermal paper coated with BPA or BPS (hormone-disrupting chemicals), making them non-recyclable and hazardous.' },
+
+      // ── ADVANCED TOPICS ──
+      { q: 'What is "industrial symbiosis"?',
+        opts: ['When industries share resources so one\'s waste becomes another\'s input', 'Two factories merging operations', 'Industrial areas planting more trees', 'Sharing waste trucks between factories'], correct: 0,
+        exp: 'Industrial symbiosis creates networks where waste or by-products from one industry become raw materials for another, minimising overall waste and resource consumption.' },
+      { q: 'What does "cradle-to-cradle" design mean?',
+        opts: ['Products designed so all materials are fully reusable or compostable', 'Items made for a single use only', 'Products designed to last from birth to death', 'Designing products from recycled materials only'], correct: 0,
+        exp: 'Cradle-to-cradle design envisions products where all materials can either safely re-enter the biological cycle (compost) or the industrial cycle (recycling) — eliminating the concept of waste.' },
+      { q: 'What is the "waste hierarchy"?',
+        opts: ['A ranking of waste management methods from most to least preferred', 'The order in which waste is collected', 'A system to sort waste by weight', 'A ranking of countries by waste generation'], correct: 0,
+        exp: 'The waste hierarchy ranks management options from most preferred (prevention) to least preferred (disposal): Prevent → Reduce → Reuse → Recycle → Recover → Dispose.' },
+      { q: 'What does "source segregation" mean?',
+        opts: ['Separating different types of waste at the point where it is generated', 'Sorting waste at recycling facilities', 'Separating hazardous waste from landfills', 'Dividing recycling centres by zone'], correct: 0,
+        exp: 'Source segregation means households and businesses separate waste into categories (wet, dry, hazardous) at home or at work — before collection — improving recycling quality.' },
+      { q: 'What is a "deposit return scheme" (DRS)?',
+        opts: ['Consumers pay a deposit on bottles/cans, refunded when returned', 'Companies deposit money to build recycling plants', 'A bank scheme for recyclers', 'A tax on single-use plastics'], correct: 0,
+        exp: 'In a deposit return scheme, consumers pay a small deposit when buying a beverage. When they return the empty container to a collection point, they get the deposit back, incentivising return.' },
+    ];
+
+    let quizData = [];
+    let quizQ = 0, quizCorrect = 0, quizTimerInterval = null, quizTimeLeft = 15, quizAnswered = false;
+
+    function initQuiz() {
+      quizData = getRandomItems(quizPool, 8);
+      quizQ = 0; quizCorrect = 0; quizAnswered = false;
+      clearInterval(quizTimerInterval);
+      loadQuizQ();
+    }
+
+    function loadQuizQ() {
+      if (quizQ >= quizData.length) { showResult(quizCorrect, quizData.length, 'Eco Quiz'); return; }
+      quizAnswered = false;
+      const q = quizData[quizQ];
+      document.getElementById('quizQNum').textContent          = 'Question ' + (quizQ+1);
+      document.getElementById('quizQText').textContent         = q.q;
+      document.getElementById('quizQLabel').textContent        = 'Question ' + (quizQ+1) + ' of ' + quizData.length;
+      document.getElementById('quizProgFill').style.width      = (quizQ / quizData.length * 100) + '%';
+      document.getElementById('quizCorrectLabel').textContent  = quizCorrect + ' correct';
+      document.getElementById('quizScore').textContent         = quizCorrect + ' / ' + quizData.length;
+      document.getElementById('quizExplanation').classList.remove('show');
+      document.getElementById('btnNextQuiz').classList.remove('show');
+
+      const opts = document.getElementById('quizOptions');
+      opts.innerHTML = '';
+      ['A','B','C','D'].forEach((letter, i) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-option';
+        div.innerHTML = '<div class="opt-letter">' + letter + '</div><span>' + q.opts[i] + '</span>';
+        div.onclick = () => answerQuiz(i, div);
+        opts.appendChild(div);
+      });
+
+      quizTimeLeft = 15;
+      renderTimer();
+      clearInterval(quizTimerInterval);
+      quizTimerInterval = setInterval(() => {
+        quizTimeLeft--;
+        renderTimer();
+        if (quizTimeLeft <= 0) { clearInterval(quizTimerInterval); timeExpired(); }
+      }, 1000);
+    }
+
+    function renderTimer() {
+      const el = document.getElementById('quizTimer');
+      el.textContent = quizTimeLeft + 's';
+      el.classList.toggle('urgent', quizTimeLeft <= 5);
+    }
+
+    function answerQuiz(idx, el) {
+      if (quizAnswered) return;
+      quizAnswered = true;
+      clearInterval(quizTimerInterval);
+      const q = quizData[quizQ];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      if (idx === q.correct) { el.classList.add('correct'); quizCorrect++; }
+      else { el.classList.add('wrong'); document.querySelectorAll('.quiz-option')[q.correct].classList.add('correct'); }
+      document.getElementById('quizExplanation').textContent = q.exp;
+      document.getElementById('quizExplanation').classList.add('show');
+      document.getElementById('btnNextQuiz').classList.add('show');
+      document.getElementById('quizCorrectLabel').textContent = quizCorrect + ' correct';
+      document.getElementById('quizScore').textContent        = quizCorrect + ' / ' + quizData.length;
+      quizQ++;
+    }
+
+    function timeExpired() {
+      if (quizAnswered) return;
+      quizAnswered = true;
+      const q = quizData[quizQ];
+      document.querySelectorAll('.quiz-option').forEach(o => o.classList.add('disabled'));
+      document.querySelectorAll('.quiz-option')[q.correct].classList.add('correct');
+      document.getElementById('quizExplanation').textContent = 'Time up! ' + q.exp;
+      document.getElementById('quizExplanation').classList.add('show');
+      document.getElementById('btnNextQuiz').classList.add('show');
+      quizQ++;
+    }
+
+    function nextQuizQuestion() {
+      document.getElementById('btnNextQuiz').classList.remove('show');
+      loadQuizQ();
+    }
+
+
+    // ═══════════════════════════
+    // GAME 3 — WORD SCRAMBLE
+    // EXPANDED POOL: 75 words
+    // ═══════════════════════════
+    const scrambleWordPool = [
+      // Actions
+      { word: 'RECYCLE',        category: 'Action',        clue: 'Convert waste into reusable material' },
+      { word: 'COMPOST',        category: 'Action',        clue: 'Turn food scraps into garden fertiliser' },
+      { word: 'REDUCE',         category: 'Action',        clue: 'Use less — first of the 3 Rs' },
+      { word: 'REUSE',          category: 'Action',        clue: 'Use an item again instead of discarding it' },
+      { word: 'REPAIR',         category: 'Action',        clue: 'Fix something broken to extend its life' },
+      { word: 'DONATE',         category: 'Action',        clue: 'Give away items you no longer need' },
+      { word: 'UPCYCLE',        category: 'Action',        clue: 'Transform waste into something of higher value' },
+      { word: 'SEGREGATE',      category: 'Action',        clue: 'Sort waste into different categories at source' },
+      { word: 'CONSERVE',       category: 'Action',        clue: 'Protect and preserve natural resources' },
+      { word: 'REFILL',         category: 'Action',        clue: 'Fill a container again rather than buying new' },
+      // Materials & Waste Types
+      { word: 'PLASTIC',        category: 'Material',      clue: 'Most common non-biodegradable packaging' },
+      { word: 'ORGANIC',        category: 'Waste Type',    clue: 'Naturally occurring biodegradable material' },
+      { word: 'HAZARDOUS',      category: 'Waste Type',    clue: 'Dangerous waste needing special disposal' },
+      { word: 'EWASTE',         category: 'Waste Type',    clue: 'Discarded electronic devices and components' },
+      { word: 'COMPOSTABLE',    category: 'Material',      clue: 'Can be broken down in a compost system' },
+      { word: 'ALUMINIUM',      category: 'Material',      clue: 'Lightweight metal used in cans and foil' },
+      { word: 'CARDBOARD',      category: 'Material',      clue: 'Thick paper material used for boxes' },
+      { word: 'STYROFOAM',      category: 'Material',      clue: 'Expanded polystyrene — takes centuries to break down' },
+      { word: 'MICROPLASTIC',   category: 'Pollutant',     clue: 'Plastic fragments smaller than 5 millimetres' },
+      { word: 'BIOPLASTIC',     category: 'Material',      clue: 'Plastic made from plant-based sources' },
+      // Environment & Nature
+      { word: 'POLLUTION',      category: 'Environment',   clue: 'Harmful substances introduced into the environment' },
+      { word: 'EMISSION',       category: 'Environment',   clue: 'Gas released into the atmosphere' },
+      { word: 'ECOSYSTEM',      category: 'Nature',        clue: 'Community of living things and their environment' },
+      { word: 'BIODIVERSITY',   category: 'Nature',        clue: 'Variety of plant and animal life in a habitat' },
+      { word: 'CONSERVATION',   category: 'Nature',        clue: 'Protection of natural resources and wildlife' },
+      { word: 'RENEWABLE',      category: 'Energy',        clue: 'Energy source that can be naturally replenished' },
+      { word: 'SUSTAINABLE',    category: 'Concept',       clue: 'Meeting present needs without harming the future' },
+      { word: 'CLIMATE',        category: 'Environment',   clue: 'Long-term pattern of weather in a region' },
+      { word: 'GREENHOUSE',     category: 'Environment',   clue: 'Effect that traps heat in the atmosphere' },
+      { word: 'DEFORESTATION',  category: 'Environment',   clue: 'Large-scale removal of forest cover' },
+      // Waste Sites & Systems
+      { word: 'LANDFILL',       category: 'Waste Site',    clue: 'A site where waste is buried in the ground' },
+      { word: 'LEACHATE',       category: 'Waste Site',    clue: 'Toxic liquid formed as water filters through landfill waste' },
+      { word: 'INCINERATOR',    category: 'Waste Site',    clue: 'Facility that burns waste at high temperatures' },
+      { word: 'BIOGAS',         category: 'Energy',        clue: 'Methane gas produced from organic waste breakdown' },
+      { word: 'COMPOSTING',     category: 'Process',       clue: 'Natural breakdown of organic matter into fertiliser' },
+      { word: 'SEGREGATION',    category: 'Process',       clue: 'Separating different types of waste at source' },
+      { word: 'RECYCLING',      category: 'Process',       clue: 'Processing waste materials into new products' },
+      { word: 'REMEDIATION',    category: 'Process',       clue: 'Cleaning up contaminated soil or water' },
+      { word: 'INCINERATION',   category: 'Process',       clue: 'Burning waste to reduce volume and generate energy' },
+      { word: 'DIGESTION',      category: 'Process',       clue: 'Anaerobic breakdown of organic matter by microbes' },
+      // Concepts & Policies
+      { word: 'CIRCULAR',       category: 'Concept',       clue: 'Economy model where resources stay in use longer' },
+      { word: 'ZEROWASTE',      category: 'Concept',       clue: 'Goal of sending nothing to landfill or incineration' },
+      { word: 'LIFECYCLE',      category: 'Concept',       clue: 'All stages of a product from creation to disposal' },
+      { word: 'FOOTPRINT',      category: 'Concept',       clue: 'Measure of environmental impact of activities' },
+      { word: 'GREENWASH',      category: 'Concept',       clue: 'Misleading claims about environmental friendliness' },
+      { word: 'BIOSPHERE',      category: 'Nature',        clue: 'The zone of Earth where life exists' },
+      { word: 'ATMOSPHERE',     category: 'Nature',        clue: 'Layer of gases surrounding the Earth' },
+      { word: 'WATERSHED',      category: 'Nature',        clue: 'Area draining into a river or lake' },
+      { word: 'CARBON',         category: 'Chemistry',     clue: 'Element key to greenhouse gas emissions' },
+      { word: 'NITROGEN',       category: 'Chemistry',     clue: 'Gas making up 78% of our atmosphere' },
+      // Water & Oceans
+      { word: 'OCEAN',          category: 'Water',         clue: 'Vast body of salt water covering most of Earth' },
+      { word: 'LEAKAGE',        category: 'Pollution',     clue: 'Plastic escaping into the natural environment' },
+      { word: 'NURDLE',         category: 'Pollution',     clue: 'Tiny pre-production plastic pellet' },
+      { word: 'AQUIFER',        category: 'Water',         clue: 'Underground layer of water-bearing rock' },
+      { word: 'EUTROPHICATION', category: 'Ecology',       clue: 'Excess nutrients causing algae blooms in water' },
+      { word: 'MANGROVE',       category: 'Nature',        clue: 'Coastal tree that filters water and stores carbon' },
+      { word: 'WETLAND',        category: 'Nature',        clue: 'Land saturated with water, home to diverse wildlife' },
+      // Energy & Resources
+      { word: 'SOLAR',          category: 'Energy',        clue: 'Energy harnessed directly from sunlight' },
+      { word: 'WINDMILL',       category: 'Energy',        clue: 'Structure that converts wind into electricity' },
+      { word: 'BIOMASS',        category: 'Energy',        clue: 'Organic matter used as a fuel source' },
+      { word: 'ETHANOL',        category: 'Energy',        clue: 'Biofuel produced from plant sugars' },
+      { word: 'EFFICIENCY',     category: 'Concept',       clue: 'Doing more with less energy or resources' },
+      { word: 'INSULATION',     category: 'Energy',        clue: 'Material that reduces heat loss in buildings' },
+      { word: 'PHOTOVOLTAIC',   category: 'Energy',        clue: 'Technology converting sunlight into electricity' },
+      // Agriculture & Food
+      { word: 'ORGANIC',        category: 'Food',          clue: 'Grown without synthetic pesticides or fertilisers' },
+      { word: 'PERMACULTURE',   category: 'Agriculture',   clue: 'Farming design mimicking natural ecosystems' },
+      { word: 'AGROFORESTRY',   category: 'Agriculture',   clue: 'Integrating trees into farming systems' },
+      { word: 'MULCHING',       category: 'Agriculture',   clue: 'Covering soil with organic material to retain moisture' },
+      { word: 'VERMICOMPOST',   category: 'Agriculture',   clue: 'Compost produced by earthworms' },
+      { word: 'IRRIGATION',     category: 'Agriculture',   clue: 'Supplying water to land or crops artificially' },
+      { word: 'PESTICIDE',      category: 'Agriculture',   clue: 'Chemical used to kill pests — can harm ecosystems' },
+      // General Eco
+      { word: 'BIODEGRADABLE',  category: 'Material',      clue: 'Can be broken down naturally by living organisms' },
+      { word: 'ENVIRONMENT',    category: 'General',       clue: 'The natural world surrounding us' },
+      { word: 'SUSTAINABILITY', category: 'Concept',       clue: 'Meeting needs today without compromising the future' },
+      { word: 'STEWARDSHIP',    category: 'Concept',       clue: 'Responsible management of environmental resources' },
+    ];
+
+    let scrambleWords = [];
+    let scrIdx = 0, scrSolved = 0, scrRevealed = false, scrDone = false;
+
+    function shuffleWord(w) {
+      let a = w.split('');
+      for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+      return (a.join('') === w && w.length > 1) ? shuffleWord(w) : a.join('');
+    }
+
+    function initScramble() {
+      scrambleWords = getRandomItems(scrambleWordPool, 8);
+      scrIdx = 0; scrSolved = 0; scrRevealed = false; scrDone = false;
+      loadScrambleW();
+    }
+
+    function loadScrambleW() {
+      if (scrIdx >= scrambleWords.length) { showResult(scrSolved, scrambleWords.length, 'Word Scramble'); return; }
+      scrDone = false; scrRevealed = false;
+      const e = scrambleWords[scrIdx];
+      const sc = shuffleWord(e.word);
+
+      document.getElementById('scrambleHint').textContent          = 'Category: ' + e.category;
+      document.getElementById('scrambleRoundLabel').textContent    = 'Word ' + (scrIdx+1) + ' of ' + scrambleWords.length;
+      document.getElementById('scrambleProgFill').style.width      = (scrIdx / scrambleWords.length * 100) + '%';
+      document.getElementById('scrambleSolvedLabel').textContent   = scrSolved + ' solved';
+      document.getElementById('scrambleScore').textContent         = scrSolved + ' / ' + scrambleWords.length;
+
+      const container = document.getElementById('scrambleLetters');
+      container.innerHTML = '';
+      sc.split('').forEach((ch, i) => {
+        const d = document.createElement('div');
+        d.className = 's-letter';
+        d.textContent = ch;
+        d.style.animationDelay = (i * 0.06) + 's';
+        container.appendChild(d);
+      });
+
+      const inp = document.getElementById('scrambleInput');
+      inp.value = ''; inp.className = 'scramble-input'; inp.disabled = false;
+      document.getElementById('scrambleFeedback').textContent = '';
+      document.getElementById('scrambleClue').classList.remove('show');
+      document.getElementById('btnReveal').style.display = 'inline-block';
+      document.getElementById('btnNextScramble').classList.remove('show');
+      setTimeout(() => inp.focus(), 100);
+    }
+
+    function checkScramble() {
+      if (scrDone) return;
+      const inp    = document.getElementById('scrambleInput');
+      const answer = inp.value.trim().toUpperCase();
+      const fb     = document.getElementById('scrambleFeedback');
+      if (!answer) return;
+
+      if (answer === scrambleWords[scrIdx].word) {
+        scrDone = true;
+        inp.className = 'scramble-input correct'; inp.disabled = true;
+        fb.textContent = 'Correct!'; fb.style.color = 'var(--green-light)';
+        if (!scrRevealed) scrSolved++;
+        document.getElementById('scrambleSolvedLabel').textContent = scrSolved + ' solved';
+        document.getElementById('scrambleScore').textContent       = scrSolved + ' / ' + scrambleWords.length;
+        document.getElementById('btnReveal').style.display = 'none';
+        document.getElementById('btnNextScramble').classList.add('show');
+        scrIdx++;
+      } else {
+        inp.className = 'scramble-input wrong';
+        fb.textContent = 'Not quite — try again'; fb.style.color = 'var(--red-light)';
+        setTimeout(() => { inp.className = 'scramble-input'; }, 600);
+      }
+    }
+
+    function showClue() {
+      scrRevealed = true;
+      document.getElementById('scrambleClue').textContent = 'Clue: ' + scrambleWords[scrIdx].clue;
+      document.getElementById('scrambleClue').classList.add('show');
+      document.getElementById('btnReveal').style.display = 'none';
+    }
+
+    function nextScrambleWord() {
+      document.getElementById('btnNextScramble').classList.remove('show');
+      loadScrambleW();
+    }
+
+    // ───────────────────────────
+    // INIT
+    // ───────────────────────────
+    window.addEventListener('load', () => {
+      updateDailyUI();
+      setTimeout(() => { document.getElementById('dailyFill').style.width = (dailyPlayed / MAX_DAILY * 100) + '%'; }, 300);
+    });
+
+    async function completeGame() {
+
+  const token = localStorage.getItem("token");
+
+  const res = await fetch("http://127.0.0.1:5000/api/game/complete", {
+      method: "POST",
+      headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+      }
+  });
+
+  const data = await res.json();
+
+  if(data.status === "success"){
+
+      alert("Nice! You earned +" + data.points_awarded + " eco points");
+
+  }
+  else if(data.status === "limit_reached"){
+
+      alert("Daily game limit reached (3/day)");
+
+  }
+
+}
+  </script>
+</body>
+</html>
