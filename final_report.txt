@@ -1,0 +1,19 @@
+Skipping Roboflow (Not found at dataset/raw/Roboflow)
+
+### FINAL DATASET REPORT
+
+| Internal Class | Source(s) | Raw | Corrupt Removed | Exact Duplicates | Perceptual Duplicates | Sampled/Capped | Final |
+|---|---|---:|---:|---:|---:|---:|---:|
+| organic | GarbageClassificationV2, OrganicDataset | 28929 | 0 | 14226 | 138 | 11566 | 2999 |
+| paper | GarbageClassificationV2, TrashNet | 4502 | 0 | 995 | 425 | 0 | 3082 |
+| glass | GarbageClassificationV2, TrashNet | 3562 | 0 | 498 | 210 | 0 | 2854 |
+| plastic | GarbageClassificationV2, TrashNet | 2466 | 0 | 484 | 178 | 0 | 1804 |
+| metal | GarbageClassificationV2, TrashNet | 1430 | 0 | 411 | 16 | 0 | 1003 |
+| mixed | GarbageClassificationV2, TrashNet | 1084 | 0 | 136 | 12 | 0 | 936 |
+| ewaste | GarbageClassificationV2 | 944 | 0 | 0 | 2 | 0 | 942 |
+
+- **Total raw images**: 42917
+- **Total final images**: 13620
+- **Train/Validation/Test counts**: Train: 10840, Val: 1414, Test: 1366
+- **Exact split methodology**: Deterministic MD5 modulo (80/10/10)
+- **Random seed for sampling**: 42

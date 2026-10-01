@@ -1,0 +1,29 @@
+{
+    "active_model_key": "mobilenetv2_prototype",
+    "models": {
+        "mobilenetv2_prototype": {
+            "name": "MobileNetV2 (PyTorch)",
+            "version": "v0.1-prototype",
+            "status": "prototype",
+            "type": "pytorch_mobilenetv2",
+            "weights_path": "ml/models/mobilenetv2_best.pt",
+            "class_names_path": "ml/models/class_names.json",
+            "dataset_version": "1.0",
+            "trained_classes": ["organic", "paper", "glass", "plastic", "metal", "mixed", "ewaste"],
+            "e_waste_coverage": "Limited to battery imagery only. Does not include PCB, laptop, keyboard, mouse, mobile phone, or printer.",
+            "confidence_threshold": 0.65
+        },
+        "yolov8_cls_production": {
+            "name": "YOLOv8-CLS",
+            "version": "v1.0",
+            "status": "pending_full_training",
+            "type": "yolov8_cls",
+            "weights_path": "ml/models/yolov8_production.pt",
+            "class_names_path": "ml/models/class_names.json",
+            "dataset_version": "1.0",
+            "trained_classes": ["organic", "paper", "glass", "plastic", "metal", "mixed", "ewaste"],
+            "e_waste_coverage": "Full E-Waste Suite (Pending Roboflow)",
+            "confidence_threshold": 0.70
+        }
+    }
+}

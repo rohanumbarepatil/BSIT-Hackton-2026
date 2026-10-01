@@ -1,0 +1,29 @@
+Inspecting OrganicDataset...
+
+Inspecting TrashNet...
+
+Inspecting GarbageClassificationV2...
+
+--- OrganicDataset Report ---
+Folder 'O': {'raw': 27932, 'corrupt': 0, 'exact_dupes': 14238, 'perceptual_dupes': 86, 'final': 13608}
+Folder 'R': {'raw': 22222, 'corrupt': 0, 'exact_dupes': 11090, 'perceptual_dupes': 64, 'final': 11068}
+
+--- TrashNet Report ---
+Folder 'cardboard': {'raw': 403, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 0, 'final': 403}
+Folder 'glass': {'raw': 501, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 0, 'final': 501}
+Folder 'metal': {'raw': 410, 'corrupt': 0, 'exact_dupes': 1, 'perceptual_dupes': 0, 'final': 409}
+Folder 'paper': {'raw': 594, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 2, 'final': 592}
+Folder 'plastic': {'raw': 482, 'corrupt': 0, 'exact_dupes': 2, 'perceptual_dupes': 0, 'final': 480}
+Folder 'trash': {'raw': 137, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 0, 'final': 137}
+
+--- GarbageClassificationV2 Report ---
+Folder 'battery': {'raw': 944, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 2, 'final': 942}
+Folder 'biological': {'raw': 997, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 2, 'final': 995}
+Folder 'cardboard': {'raw': 1825, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 178, 'final': 1647}
+Folder 'clothes': {'raw': 5327, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 1, 'final': 5326}
+Folder 'glass': {'raw': 3061, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 210, 'final': 2851}
+Folder 'metal': {'raw': 1020, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 16, 'final': 1004}
+Folder 'paper': {'raw': 1680, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 245, 'final': 1435}
+Folder 'plastic': {'raw': 1984, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 178, 'final': 1806}
+Folder 'shoes': {'raw': 1977, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 11, 'final': 1966}
+Folder 'trash': {'raw': 947, 'corrupt': 0, 'exact_dupes': 0, 'perceptual_dupes': 12, 'final': 935}

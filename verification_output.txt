@@ -1,0 +1,19 @@
+
+--- CROSS-SOURCE PERCEPTUAL MATCHES ---
+GarbageClassificationV2 <-> TrashNet: 2521
+GarbageClassificationV2 <-> OrganicDataset: 75
+
+--- SPLIT STRATIFICATION ---
+ewaste: Train 77.9% | Val 9.8% | Test 12.3%
+glass: Train 80.5% | Val 10.2% | Test 9.3%
+plastic: Train 79.5% | Val 9.8% | Test 10.8%
+mixed: Train 80.0% | Val 9.4% | Test 10.6%
+paper: Train 79.0% | Val 11.0% | Test 10.1%
+organic: Train 79.6% | Val 10.3% | Test 10.1%
+metal: Train 80.2% | Val 12.0% | Test 7.9%
+
+Fixing split stratification...
+Stratification fixed and files moved.
+
+--- PERCEPTUAL LEAKAGE REPORT ---
+Cross-split perceptual matches found: 0

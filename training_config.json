@@ -1,0 +1,37 @@
+{
+    "seed": 42,
+    "dataset": {
+        "base_dir": "dataset/clean",
+        "yolo_dir": "dataset/yolo",
+        "train_split": "Train",
+        "val_split": "Validation",
+        "test_split": "Test",
+        "num_classes": 7
+    },
+    "training": {
+        "image_size": 224,
+        "batch_size": 32,
+        "mobilenet": {
+            "head_epochs": 10,
+            "head_lr": 1e-3,
+            "finetune_epochs": 30,
+            "finetune_lr": 1e-5,
+            "patience": 5,
+            "optimizer": "Adam"
+        },
+        "yolo": {
+            "model_variant": "yolov8n-cls.pt",
+            "epochs": 50,
+            "patience": 10,
+            "optimizer": "auto"
+        }
+    },
+    "augmentation": {
+        "train_only": true,
+        "random_resized_crop": 224,
+        "random_horizontal_flip": 0.5,
+        "color_jitter": 0.2
+    },
+    "hardware": "cuda if available else cpu",
+    "notes": "Full training configuration for production. Designed to be resumable."
+}
