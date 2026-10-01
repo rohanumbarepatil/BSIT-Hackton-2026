@@ -2,11 +2,29 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Leaf, ScanLine, Recycle, Cpu, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { 
+  Leaf, 
+  ScanLine, 
+  Trash2, 
+  Cpu, 
+  ArrowRight, 
+  Loader2, 
+  AlertCircle, 
+  Mail, 
+  Lock, 
+  Eye, 
+  EyeOff, 
+  GraduationCap, 
+  Users, 
+  ShieldCheck, 
+  Recycle
+} from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
@@ -19,7 +37,6 @@ export default function LoginPage() {
     setError('');
     
     try {
-      // Use the NEXT_PUBLIC_API_URL or fallback to localhost for development
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8001';
       
       const res = await fetch(`${apiUrl}/api/v1/auth/login`, {
@@ -32,7 +49,7 @@ export default function LoginPage() {
       
       if (!res.ok) {
         if (res.status === 401 || res.status === 403 || res.status === 400) {
-          throw new Error('Email or password is incorrect.');
+          throw new Error('Unable to sign in. Please check your email and password.');
         } else {
           throw new Error('Unable to connect to WasteSense AI. Please try again.');
         }
@@ -40,7 +57,6 @@ export default function LoginPage() {
       
       login(data.access_token, data.user);
     } catch (err: any) {
-      // Use a generic network error if it's a fetch failure without response
       if (err.message === 'Failed to fetch') {
         setError('Unable to connect to WasteSense AI. Please try again.');
       } else {
@@ -51,132 +67,193 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#F5F8F5] text-[#17201B] font-sans selection:bg-[#1F8A5B] selection:text-white">
+    <div className="min-h-screen flex flex-col md:flex-row bg-white text-[#14201A] font-sans selection:bg-[#1F8A5B] selection:text-white">
       
-      {/* LEFT SECTION (Branding & Features) */}
-      <div className="md:w-[55%] lg:w-[60%] p-8 md:p-16 flex flex-col relative overflow-hidden bg-[#12372A] text-white justify-between">
-        {/* Subtle background decorations */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#1F8A5B] rounded-full blur-[120px] opacity-20 -mr-[400px] -mt-[400px] pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[#159A9C] rounded-full blur-[100px] opacity-20 -ml-[200px] -mb-[200px] pointer-events-none"></div>
-
-        <div className="relative z-10 flex items-center gap-3 mb-16">
-          <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20">
-            <Leaf className="w-6 h-6 text-[#38A169]" />
-          </div>
-          <span className="text-2xl font-bold tracking-tight">WasteSense AI</span>
+      {/* LEFT SECTION (Story & Sustainability Visual) */}
+      <div className="relative w-full md:w-[60%] flex flex-col justify-between overflow-hidden bg-[#12372A]">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image 
+            src="/bg-campus.jpg" 
+            alt="Campus Environment" 
+            fill 
+            className="object-cover object-center opacity-90"
+            priority
+          />
+          {/* Gradient Overlay for Text Readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#12372A]/90 via-[#12372A]/40 to-[#12372A]/10 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-[#12372A]/80 to-transparent"></div>
         </div>
 
-        <div className="relative z-10 max-w-2xl mt-auto mb-16">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 tracking-tight">
-            Make Every <br/>
+        {/* Top Brand */}
+        <div className="relative z-10 p-8 md:p-12 flex items-center gap-3">
+          <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg border border-white/20">
+            <Leaf className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold tracking-tight text-white flex items-center gap-1">
+              WasteSense <span className="text-[#38A169]">AI</span>
+            </div>
+            <div className="text-sm font-medium text-white/80 tracking-wide">
+              Campus Sustainability Platform
+            </div>
+          </div>
+        </div>
+
+        {/* Hero & Features */}
+        <div className="relative z-10 p-8 md:p-12 mt-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white/90 text-[10px] font-bold uppercase tracking-widest mb-6 shadow-sm">
+            <Leaf className="w-3 h-3 text-[#38A169]" /> AI-Powered Waste Intelligence
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-6 tracking-tight drop-shadow-md">
+            Make Every <br className="hidden sm:block" />
             <span className="text-[#38A169]">Disposal Count.</span>
           </h1>
-          <p className="text-lg md:text-xl text-[#F5F8F5]/80 leading-relaxed max-w-xl mb-12">
-            AI-powered waste intelligence for a cleaner, more responsible campus.
-          </p>
-
+          
           {/* Feature Cards Grid */}
-          <div className="grid grid-cols-2 gap-4 max-w-lg mb-12">
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-start gap-4 transition hover:bg-white/10">
-              <div className="p-2 bg-[#1F8A5B]/20 rounded-lg text-[#38A169]">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10 max-w-3xl">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 shadow-sm">
+              <div className="p-2.5 bg-[#F5F8F5] rounded-xl text-[#12372A] shadow-sm">
                 <ScanLine className="w-5 h-5" />
               </div>
-              <div className="font-medium text-sm leading-tight mt-0.5 text-white/90">AI Waste <br/> Classification</div>
+              <div className="font-semibold text-xs leading-tight text-white drop-shadow-sm">AI Waste<br/>Classification</div>
             </div>
             
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-start gap-4 transition hover:bg-white/10">
-              <div className="p-2 bg-[#159A9C]/20 rounded-lg text-[#159A9C]">
-                <Recycle className="w-5 h-5" />
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 shadow-sm">
+              <div className="p-2.5 bg-[#F5F8F5] rounded-xl text-[#159A9C] shadow-sm">
+                <Trash2 className="w-5 h-5" />
               </div>
-              <div className="font-medium text-sm leading-tight mt-0.5 text-white/90">Campus <br/> Smart Bins</div>
+              <div className="font-semibold text-xs leading-tight text-white drop-shadow-sm">Campus<br/>Smart Bins</div>
             </div>
             
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-start gap-4 transition hover:bg-white/10">
-              <div className="p-2 bg-[#F5F8F5]/10 rounded-lg text-white">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 shadow-sm">
+              <div className="p-2.5 bg-[#F5F8F5] rounded-xl text-[#38A169] shadow-sm">
                 <Cpu className="w-5 h-5" />
               </div>
-              <div className="font-medium text-sm leading-tight mt-0.5 text-white/90">E-Waste <br/> Lifecycle</div>
+              <div className="font-semibold text-xs leading-tight text-white drop-shadow-sm">E-Waste<br/>Lifecycle</div>
             </div>
             
-            <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm flex items-start gap-4 transition hover:bg-white/10">
-              <div className="p-2 bg-[#38A169]/20 rounded-lg text-[#38A169]">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 shadow-sm">
+              <div className="p-2.5 bg-[#F5F8F5] rounded-xl text-[#1F8A5B] shadow-sm">
                 <Leaf className="w-5 h-5" />
               </div>
-              <div className="font-medium text-sm leading-tight mt-0.5 text-white/90">Green <br/> Credits</div>
+              <div className="font-semibold text-xs leading-tight text-white drop-shadow-sm">Green<br/>Credits</div>
             </div>
           </div>
 
           {/* Ecosystem flowchart */}
-          <div className="hidden md:flex items-center gap-3 text-[11px] font-medium tracking-wide uppercase text-white/60">
-            <span className="bg-white/10 px-3 py-1.5 rounded-full">Waste Item</span>
-            <ArrowRight className="w-3 h-3" />
-            <span className="bg-[#1F8A5B]/20 px-3 py-1.5 rounded-full text-[#38A169]">AI Classification</span>
-            <ArrowRight className="w-3 h-3" />
-            <span className="bg-white/10 px-3 py-1.5 rounded-full">Correct Disposal</span>
-            <ArrowRight className="w-3 h-3" />
-            <span className="bg-[#159A9C]/20 px-3 py-1.5 rounded-full text-[#159A9C]">Smart Bin</span>
-            <ArrowRight className="w-3 h-3" />
-            <span className="bg-[#38A169]/20 px-3 py-1.5 rounded-full text-[#38A169]">Green Credits</span>
+          <div className="hidden md:flex flex-wrap items-center gap-3 text-[10px] lg:text-xs font-bold tracking-wide uppercase text-white/80 drop-shadow-sm mb-12">
+            <span className="bg-[#12372A]/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full">Waste Item</span>
+            <ArrowRight className="w-3 h-3 text-white/60" />
+            <span className="bg-[#12372A]/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full">AI Classification</span>
+            <ArrowRight className="w-3 h-3 text-white/60" />
+            <span className="bg-[#12372A]/60 backdrop-blur-sm border border-white/10 px-3 py-1.5 rounded-full">Correct Disposal</span>
+            <ArrowRight className="w-3 h-3 text-white/60" />
+            <span className="bg-[#12372A]/60 backdrop-blur-sm border border-[#159A9C]/30 px-3 py-1.5 rounded-full text-[#159A9C]">Smart Bin</span>
+            <ArrowRight className="w-3 h-3 text-white/60" />
+            <span className="bg-[#12372A]/60 backdrop-blur-sm border border-[#38A169]/30 px-3 py-1.5 rounded-full text-[#38A169]">Green Credits</span>
           </div>
-        </div>
 
-        <div className="relative z-10 text-xs text-white/40 mt-auto">
-          &copy; {new Date().getFullYear()} WasteSense AI Campus Platform. All rights reserved.
+          {/* Bottom Context Statement */}
+          <div className="bg-[#12372A]/80 backdrop-blur-md border border-white/10 p-5 rounded-2xl max-w-2xl text-white/90 text-sm md:text-base font-medium leading-relaxed">
+            AI-powered campus waste intelligence. Built for smarter segregation, responsible e-waste handling and measurable sustainability.
+          </div>
         </div>
       </div>
 
-      {/* RIGHT SECTION (Login Card) */}
-      <div className="md:w-[45%] lg:w-[40%] flex items-center justify-center p-8 bg-[#F5F8F5]">
-        <div className="w-full max-w-sm">
+      {/* RIGHT SECTION (Login Panel) */}
+      <div className="w-full md:w-[40%] flex items-center justify-center p-6 lg:p-12 bg-[#F5F8F5]">
+        
+        {/* Premium Login Card */}
+        <div className="w-full max-w-[420px] bg-white p-8 lg:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 relative">
           
-          <div className="mb-10">
-            <div className="inline-flex items-center justify-center px-3 py-1 bg-[#1F8A5B]/10 text-[#1F8A5B] text-xs font-bold uppercase tracking-wider rounded-full mb-6">
+          {/* Header */}
+          <div className="mb-10 text-center">
+            <div className="inline-flex items-center justify-center px-3 py-1.5 bg-[#1F8A5B]/10 text-[#1F8A5B] text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">
               Demo Environment
             </div>
-            <h2 className="text-3xl font-bold text-[#12372A] tracking-tight mb-2">Welcome back</h2>
-            <p className="text-[#64716A]">Sign in to your WasteSense AI workspace.</p>
+            <div className="flex justify-center mb-4">
+              <Leaf className="w-10 h-10 text-[#1F8A5B]" />
+            </div>
+            <h2 className="text-2xl lg:text-3xl font-bold text-[#14201A] tracking-tight mb-2">Welcome back</h2>
+            <p className="text-[#64716A] text-sm lg:text-base">Sign in to your WasteSense AI workspace.</p>
           </div>
 
+          {/* Role Access Strip (Informational) */}
+          <div className="flex justify-center gap-2 mb-8 flex-wrap">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-semibold text-[#64716A]">
+              <GraduationCap className="w-3.5 h-3.5" /> Student
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-semibold text-[#64716A]">
+              <Users className="w-3.5 h-3.5" /> Staff
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-semibold text-[#64716A]">
+              <ShieldCheck className="w-3.5 h-3.5" /> Admin
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-semibold text-[#64716A]">
+              <Recycle className="w-3.5 h-3.5" /> Recycler
+            </div>
+          </div>
+
+          {/* Error State */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <span className="font-medium">{error}</span>
             </div>
           )}
 
+          {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-[#12372A]">Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="student@wastesense.ai"
-                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1F8A5B] focus:border-transparent transition-shadow text-[#17201B] placeholder-gray-400"
-                required
-                disabled={isSubmitting}
-              />
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[#14201A]">Email address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="student@wastesense.ai"
+                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 hover:bg-gray-100/50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1F8A5B] focus:border-transparent focus:bg-white transition-all text-[#14201A] placeholder-gray-400 font-medium"
+                  required
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
             
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="block text-sm font-semibold text-[#12372A]">Password</label>
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[#14201A]">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full pl-11 pr-12 py-3.5 bg-gray-50 hover:bg-gray-100/50 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1F8A5B] focus:border-transparent focus:bg-white transition-all text-[#14201A] placeholder-gray-400 font-medium"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#1F8A5B] focus:border-transparent transition-shadow text-[#17201B] placeholder-gray-400"
-                required
-                disabled={isSubmitting}
-              />
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 mt-2 bg-[#1F8A5B] hover:bg-[#12372A] text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-4 mt-4 bg-[#1F8A5B] hover:bg-[#12372A] text-white rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2 shadow-[0_4px_14px_0_rgba(31,138,91,0.39)] hover:shadow-[0_6px_20px_rgba(31,138,91,0.23)] hover:-translate-y-[1px] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
             >
               {isSubmitting ? (
                 <>
@@ -189,11 +266,11 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Footer */}
           <div className="mt-8 text-center">
-            <p className="text-xs text-[#64716A] font-medium flex items-center justify-center gap-2">
-              <span className="w-4 h-px bg-gray-300"></span>
+            <p className="text-xs text-[#64716A] font-semibold flex items-center justify-center gap-3">
+              <ShieldCheck className="w-4 h-4 text-[#1F8A5B]" />
               Secure role-based campus access
-              <span className="w-4 h-px bg-gray-300"></span>
             </p>
           </div>
           

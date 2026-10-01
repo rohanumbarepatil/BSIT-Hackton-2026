@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ml.inference.classifier import WasteClassifier
-from api.routers import disposal, users, ewaste, smartbins, auth
+from api.routers import disposal, users, ewaste, smartbins, auth, admin
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -35,6 +35,7 @@ app.include_router(disposal.router)
 app.include_router(users.router)
 app.include_router(ewaste.router)
 app.include_router(smartbins.router)
+app.include_router(admin.router)
 
 # Global classifier instance
 classifier = None

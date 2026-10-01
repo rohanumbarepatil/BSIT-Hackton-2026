@@ -153,3 +153,22 @@ export async function collectBin(binId: string) {
 export async function getDashboardStats() {
   return fetchAPI('/api/v1/bins/dashboard/stats');
 }
+
+// ----------------------------------------------------
+// ADMIN
+// ----------------------------------------------------
+export async function getAdminUsers() {
+  return fetchAPI('/api/v1/admin/users');
+}
+
+export async function getAdminAuditLogs() {
+  return fetchAPI('/api/v1/admin/audit-logs');
+}
+
+export async function getAdminCreditsOverview() {
+  return fetchAPI('/api/v1/admin/credits/overview');
+}
+
+export async function getAdminCreditsStudents() {
+  return fetchAPI('/api/v1/admin/credits/students');
+}

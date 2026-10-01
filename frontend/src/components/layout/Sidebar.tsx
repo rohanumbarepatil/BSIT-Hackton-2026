@@ -21,9 +21,9 @@ const roleNavigation: Record<string, any[]> = {
     { label: "AI Classification", icon: ScanLine, href: "/classify", color: "text-emerald-500" },
     { label: "E-Waste Lifecycle", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
     { label: "Smart Bins", icon: Recycle, href: "/bins", color: "text-emerald-500" },
-    { label: "Green Credits", icon: Leaf, href: "/credits", color: "text-emerald-500" },
-    { label: "Users & Roles", icon: Users, href: "#", color: "text-emerald-500" },
-    { label: "Audit Logs", icon: Settings, href: "#", color: "text-emerald-500" },
+    { label: "Green Credits", icon: Leaf, href: "/admin/credits", color: "text-emerald-500" },
+    { label: "Users & Roles", icon: Users, href: "/admin/users", color: "text-emerald-500" },
+    { label: "Audit Logs", icon: Settings, href: "/admin/audit", color: "text-emerald-500" },
   ],
   staff: [
     { label: "Staff Dashboard", icon: LayoutDashboard, href: "/staff", color: "text-emerald-500" },
