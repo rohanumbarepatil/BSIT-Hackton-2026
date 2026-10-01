@@ -15,47 +15,42 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
+const roleNavigation: Record<string, any[]> = {
+  admin: [
+    { label: "Admin Dashboard", icon: LayoutDashboard, href: "/admin", color: "text-emerald-500" },
+    { label: "AI Classification", icon: ScanLine, href: "/classify", color: "text-emerald-500" },
+    { label: "E-Waste Lifecycle", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
+    { label: "Smart Bins", icon: Recycle, href: "/bins", color: "text-emerald-500" },
+    { label: "Green Credits", icon: Leaf, href: "/credits", color: "text-emerald-500" },
+    { label: "Users & Roles", icon: Users, href: "#", color: "text-emerald-500" },
+    { label: "Audit Logs", icon: Settings, href: "#", color: "text-emerald-500" },
+  ],
+  staff: [
+    { label: "Staff Dashboard", icon: LayoutDashboard, href: "/staff", color: "text-emerald-500" },
+    { label: "Scan E-Waste QR", icon: ScanLine, href: "/staff/scan", color: "text-emerald-500" },
+    { label: "E-Waste Assets", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
+    { label: "Smart Bins", icon: Recycle, href: "/bins", color: "text-emerald-500" },
+  ],
+  recycler: [
+    { label: "Recycler Dashboard", icon: LayoutDashboard, href: "/recycler", color: "text-emerald-500" },
+    { label: "Scan Asset", icon: ScanLine, href: "/recycler/scan", color: "text-emerald-500" },
+    { label: "Assigned Assets", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
+    { label: "Recycling Records", icon: Recycle, href: "#", color: "text-emerald-500" },
+  ],
+  student: [
+    { label: "Overview", icon: LayoutDashboard, href: "/student", color: "text-emerald-500" },
+    { label: "AI Classification", icon: ScanLine, href: "/classify", color: "text-emerald-500" },
+    { label: "Green Credits", icon: Leaf, href: "/credits", color: "text-emerald-500" },
+  ]
+};
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
   const getRoutes = () => {
     if (!user) return [];
-    
-    if (user.role === 'admin') {
-      return [
-        { label: "Admin Dashboard", icon: LayoutDashboard, href: "/admin", color: "text-emerald-500" },
-        { label: "AI Classification", icon: ScanLine, href: "/classify", color: "text-emerald-500" },
-        { label: "E-Waste Lifecycle", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
-        { label: "Smart Bins", icon: Recycle, href: "/bins", color: "text-emerald-500" },
-        { label: "Green Credits", icon: Leaf, href: "/credits", color: "text-emerald-500" },
-        { label: "Users & Roles", icon: Users, href: "#", color: "text-emerald-500" },
-      ];
-    }
-    
-    if (user.role === 'staff') {
-      return [
-        { label: "Staff Dashboard", icon: LayoutDashboard, href: "/staff", color: "text-emerald-500" },
-        { label: "Scan E-Waste QR", icon: ScanLine, href: "/staff/scan", color: "text-emerald-500" },
-        { label: "E-Waste Assets", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
-        { label: "Smart Bins", icon: Recycle, href: "/bins", color: "text-emerald-500" },
-      ];
-    }
-    
-    if (user.role === 'recycler') {
-      return [
-        { label: "Recycler Dashboard", icon: LayoutDashboard, href: "/recycler", color: "text-emerald-500" },
-        { label: "Scan Asset", icon: ScanLine, href: "/recycler/scan", color: "text-emerald-500" },
-        { label: "Assigned Assets", icon: Cpu, href: "/ewaste", color: "text-emerald-500" },
-      ];
-    }
-
-    // Default to student
-    return [
-      { label: "Overview", icon: LayoutDashboard, href: "/student", color: "text-emerald-500" },
-      { label: "AI Classification", icon: ScanLine, href: "/classify", color: "text-emerald-500" },
-      { label: "Green Credits", icon: Leaf, href: "/credits", color: "text-emerald-500" },
-    ];
+    return roleNavigation[user.role] || [];
   };
 
   const routes = getRoutes();
@@ -100,7 +95,7 @@ export default function Sidebar() {
       </div>
       <div className="px-6 py-4 mt-auto border-t border-white/10">
         <p className="text-xs text-zinc-400">WasteSense AI</p>
-        <p className="text-[10px] text-zinc-500 mb-4">Demo Environment</p>
+        <p className="text-[10px] text-zinc-500 mb-4">Campus Sustainability Platform</p>
         {user && (
           <p className="text-xs text-emerald-400 mb-4">Role: {user.role.toUpperCase()}</p>
         )}

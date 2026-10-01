@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/layout/Sidebar";
-import TopHeader from "@/components/layout/TopHeader";
+import AppShell from "@/components/layout/AppShell";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,20 +23,9 @@ export default function RootLayout({
       <body className={`${inter.className} bg-[#F7F8F5] text-[#17201B] flex h-screen overflow-hidden`}>
         <AuthProvider>
           <RouteGuard>
-            {/* Sidebar */}
-            <div className="hidden md:flex md:w-64 md:flex-col fixed h-full z-10">
-              <Sidebar />
-            </div>
-            
-            {/* Main Content */}
-            <main className="md:pl-64 flex flex-col w-full h-full">
-              <TopHeader />
-              <div className="flex-1 overflow-y-auto bg-[#F7F8F5]">
-                <div className="p-8">
-                  {children}
-                </div>
-              </div>
-            </main>
+            <AppShell>
+              {children}
+            </AppShell>
           </RouteGuard>
         </AuthProvider>
       </body>
