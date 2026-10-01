@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { fetchAPI } from "@/lib/api";
 
 export default function QRScannerPage() {
   const [assetId, setAssetId] = useState("");
@@ -11,16 +12,13 @@ export default function QRScannerPage() {
 
   const handleScan = () => {
     if (!assetId) return;
-    fetch(`http://127.0.0.1:8001/api/v1/ewaste/assets/${assetId}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    .then(res => res.json())
+    fetchAPI(`/api/v1/ewaste/assets/${assetId}`)
     .then(data => {
-      if (data.detail) alert(data.detail);
-      else {
-        alert(`Scanned: ${data.asset_name} (${data.status})`);
-        // We could redirect to a details page, or show details here.
-      }
+      alert(`Scanned: ${data.asset_name} (${data.status})`);
+      // We could redirect to a details page, or show details here.
+    })
+    .catch(err => {
+      alert(err.message);
     });
   };
 

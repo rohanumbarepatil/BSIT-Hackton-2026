@@ -77,38 +77,40 @@ WasteSense-2/
 
 ## ⚙️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **AI / ML** | TensorFlow, MobileNetV2, scikit-learn, OpenCV |
-| **Backend** | Python, Flask, Flask-JWT-Extended, Flask-CORS |
-| **Database** | PostgreSQL, SQLAlchemy ORM, psycopg2 |
-| **Frontend** | HTML, CSS, JavaScript, REST API |
-| **Tools** | Git, VS Code, Jupyter Notebook |
+| Layer        | Technology                                    |
+| ------------ | --------------------------------------------- |
+| **AI / ML**  | TensorFlow, MobileNetV2, scikit-learn, OpenCV |
+| **Backend**  | Python, Flask, Flask-JWT-Extended, Flask-CORS |
+| **Database** | PostgreSQL, SQLAlchemy ORM, psycopg2          |
+| **Frontend** | HTML, CSS, JavaScript, REST API               |
+| **Tools**    | Git, VS Code, Jupyter Notebook                |
 
 ---
 
 ## 🏷️ Waste Categories & Eco Points
 
-| Category | Eco Points |
-|---|---|
-| 🥬 Organic | 80 pts |
-| 📄 Paper | 100 pts |
-| 🍶 Glass | 120 pts |
-| 🧴 Plastic | 150 pts |
-| 🔩 Metal | 200 pts |
-| 🗑️ Mixed | 60 pts |
+| Category   | Eco Points |
+| ---------- | ---------- |
+| 🥬 Organic | 80 pts     |
+| 📄 Paper   | 100 pts    |
+| 🍶 Glass   | 120 pts    |
+| 🧴 Plastic | 150 pts    |
+| 🔩 Metal   | 200 pts    |
+| 🗑️ Mixed   | 60 pts     |
 
 ---
 
 ## 🛠️ Installation & Setup
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/ShibamKhadanga/WasteSense-AI.git
 cd WasteSense-AI
 ```
 
 ### 2. Create Virtual Environment
+
 ```bash
 python -m venv venv
 venv\Scripts\activate        # Windows
@@ -116,17 +118,21 @@ venv\Scripts\activate        # Windows
 ```
 
 ### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
 ### 4. Configure PostgreSQL
+
 Set up your PostgreSQL database and update connection settings in `services/database_service.py`.
 
 ### 5. Run the Application
+
 ```bash
 python app.py
 ```
+
 The API will be live at: `http://127.0.0.1:5000`
 
 ---
@@ -145,6 +151,7 @@ python train_model.py
 ```
 
 **Training Config:**
+
 - Image Size: 224×224
 - Batch Size: 32
 - Epochs: 10
@@ -155,40 +162,17 @@ python train_model.py
 
 ## 🌐 API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/auth/register` | Register new user |
-| POST | `/auth/login` | Login & get JWT token |
-| POST | `/predict` | Classify waste image |
-| POST | `/dispose` | Confirm disposal with GPS |
-| GET | `/leaderboard` | Get eco-points leaderboard |
-| GET | `/analytics` | Get disposal analytics |
-| GET | `/rewards` | View available rewards |
-| POST | `/vouchers` | Redeem voucher |
-| GET | `/bins` | Get nearby bin locations |
-| GET | `/profile` | Get user profile & history |
+| Method | Endpoint         | Description                |
+| ------ | ---------------- | -------------------------- |
+| POST   | `/auth/register` | Register new user          |
+| POST   | `/auth/login`    | Login & get JWT token      |
+| POST   | `/predict`       | Classify waste image       |
+| POST   | `/dispose`       | Confirm disposal with GPS  |
+| GET    | `/leaderboard`   | Get eco-points leaderboard |
+| GET    | `/analytics`     | Get disposal analytics     |
+| GET    | `/rewards`       | View available rewards     |
+| POST   | `/vouchers`      | Redeem voucher             |
+| GET    | `/bins`          | Get nearby bin locations   |
+| GET    | `/profile`       | Get user profile & history |
 
 ---
-
-## 🏆 Hackathon
-
-This project was built and presented at:
-
-> **NHIDE-2026 — National Hackathon for Innovation, Design & Entrepreneurship**  
-> Guru Ghasidas Vishwavidyalaya (GGV), Bilaspur, Chhattisgarh  
-> **Team Size:** 4 members (AI/ML · Frontend · Backend)
-
----
-
-## 👨‍💻 Author
-
-**Shibam Khadanga**  
-B.Tech Computer Science, Kalinga University (CGPA: 8.5)  
-📧 shibamkhadanga947@gmail.com  
-🔗 [LinkedIn](http://www.linkedin.com/in/shibam-khadanga-b91436286) | [GitHub](https://github.com/ShibamKhadanga) | [LeetCode](https://leetcode.com/u/Shibam_Khadanga/)
-
----
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).

@@ -33,19 +33,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    const authData = localStorage.getItem('wastesense_auth');
+    if (authData) {
+      try {
+        const parsed = JSON.parse(authData);
+        if (parsed.access_token && parsed.user) {
+          setToken(parsed.access_token);
+          setUser(parsed.user);
+        }
+      } catch (e) {}
     }
     setLoading(false);
   }, []);
 
   const login = (newToken: string, newUser: User) => {
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    const authObj = {
+      access_token: newToken,
+      user: newUser
+    };
+    localStorage.setItem('wastesense_auth', JSON.stringify(authObj));
     setToken(newToken);
     setUser(newUser);
     
@@ -57,8 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('wastesense_auth');
     setToken(null);
     setUser(null);
     router.push('/login');

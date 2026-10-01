@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Leaf, History, Award, Zap, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { getUserCredits, getCreditHistory } from "@/lib/api";
 
 export default function CreditsPage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [credits, setCredits] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -12,12 +14,12 @@ export default function CreditsPage() {
 
   useEffect(() => {
     async function loadData() {
+      if (!user) return;
       try {
         setLoading(true);
-        // Using "test_user_1" as per the MVP
         const [cred, hist] = await Promise.all([
-          getUserCredits("test_user_1"),
-          getCreditHistory("test_user_1")
+          getUserCredits(user.id),
+          getCreditHistory(user.id)
         ]);
         setCredits(cred);
         setHistory(hist.history || []);
@@ -57,7 +59,7 @@ export default function CreditsPage() {
       {/* Demo Warning */}
       <div className="bg-blue-50 text-blue-800 px-4 py-2 rounded-lg text-sm inline-flex items-center gap-2 border border-blue-200">
         <Zap className="w-4 h-4" />
-        Demo Mode: Viewing data for Student (test_user_1)
+        Demo Mode: Viewing data for Student ({user?.id})
       </div>
 
       {/* Hero Stats */}

@@ -4,8 +4,10 @@ import { useState, useRef } from "react";
 import { UploadCloud, Camera, Loader2, Info, AlertTriangle, CheckCircle, ArrowRight, ScanLine } from "lucide-react";
 import { classifyWaste, startDisposal, verifyDisposal } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ClassifyPage() {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,10 +47,10 @@ export default function ClassifyPage() {
   };
 
   const handleDisposal = async () => {
-    if (!result || result.is_low_confidence || result.class_name === "mixed") return;
+    if (!result || result.is_low_confidence || result.class_name === "mixed" || !user) return;
     setLoading(true);
     try {
-      const session = await startDisposal(result.class_name, result.confidence);
+      const session = await startDisposal(user.id, result);
       setDisposalSession(session);
     } catch (err: any) {
       setError(err.message || "Failed to start disposal session.");

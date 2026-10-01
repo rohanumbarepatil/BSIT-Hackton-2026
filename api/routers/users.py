@@ -28,6 +28,9 @@ from api.routers.auth import require_role
 
 @router.get("/{user_id}/credits", response_model=CreditBalanceResponse)
 def get_credits(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(require_role("student", "admin"))):
+    if current_user.role == "student" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="You can only view your own credits.")
+        
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
@@ -39,6 +42,9 @@ def get_credits(user_id: str, db: Session = Depends(get_db), current_user: User 
 
 @router.get("/{user_id}/credit-history", response_model=CreditHistoryResponse)
 def get_credit_history(user_id: str, db: Session = Depends(get_db), current_user: User = Depends(require_role("student", "admin"))):
+    if current_user.role == "student" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="You can only view your own credit history.")
+        
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")

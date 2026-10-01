@@ -2,9 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { Bell, MapPin, User } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function TopHeader() {
   const pathname = usePathname();
+  const { user } = useAuth();
   
   const getPageTitle = () => {
     switch (pathname) {
@@ -44,7 +46,7 @@ export default function TopHeader() {
             <User className="w-5 h-5" />
           </div>
           <div className="hidden md:block text-sm">
-            <p className="font-medium text-[#17201B]">Student</p>
+            <p className="font-medium text-[#17201B] capitalize">{user?.role || "Guest"}</p>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import uuid
 import datetime
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 class LoginRequest(BaseModel):
     email: str
@@ -58,6 +58,8 @@ def logout():
     return {"message": "Logged out successfully"}
 
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Not authenticated")
     token = credentials.credentials
     user_id = ACTIVE_TOKENS.get(token)
     if not user_id:

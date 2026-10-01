@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Cpu, ScanLine } from "lucide-react";
+import { getEwasteDashboard } from "@/lib/api";
 
 export default function StaffDashboard() {
   const { user, loading } = useAuth();
@@ -15,9 +16,7 @@ export default function StaffDashboard() {
     if (!loading && (!user || user.role !== 'staff')) {
       router.push('/login');
     } else if (user?.role === 'staff') {
-      fetch('http://127.0.0.1:8001/api/v1/ewaste/dashboard', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      }).then(res => res.json()).then(data => setStats(data));
+      getEwasteDashboard().then(setStats).catch(console.error);
     }
   }, [user, loading, router]);
 
