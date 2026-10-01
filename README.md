@@ -100,43 +100,6 @@ WasteSense-2/
 
 ---
 
-## 🛠️ Installation & Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/ShibamKhadanga/WasteSense-AI.git
-cd WasteSense-AI
-```
-
-### 2. Create Virtual Environment
-
-```bash
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Linux/Mac
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure PostgreSQL
-
-Set up your PostgreSQL database and update connection settings in `services/database_service.py`.
-
-### 5. Run the Application
-
-```bash
-python app.py
-```
-
-The API will be live at: `http://127.0.0.1:5000`
-
----
-
 ## 🤖 Model Training
 
 The model uses **MobileNetV2** (pretrained on ImageNet) with transfer learning, fine-tuned on a 6-class waste dataset.
