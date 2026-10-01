@@ -133,8 +133,8 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center px-3 py-1 bg-[#1F8A5B]/10 text-[#1F8A5B] text-xs font-bold uppercase tracking-wider rounded-full mb-6">
               Demo Environment
             </div>
-            <h2 className="text-3xl font-bold text-[#12372A] tracking-tight mb-2">Welcome to WasteSense AI</h2>
-            <p className="text-[#64716A]">Sign in to your campus sustainability workspace.</p>
+            <h2 className="text-3xl font-bold text-[#12372A] tracking-tight mb-2">Welcome back</h2>
+            <p className="text-[#64716A]">Sign in to your WasteSense AI workspace.</p>
           </div>
 
           {error && (
@@ -192,7 +192,7 @@ export default function LoginPage() {
           <div className="mt-8 text-center">
             <p className="text-xs text-[#64716A] font-medium flex items-center justify-center gap-2">
               <span className="w-4 h-px bg-gray-300"></span>
-              Secure access based on your role.
+              Secure role-based campus access
               <span className="w-4 h-px bg-gray-300"></span>
             </p>
           </div>
